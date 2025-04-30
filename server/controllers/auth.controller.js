@@ -2,6 +2,7 @@
 import bcrypt from 'bcryptjs';
 import User from '../models/user.model.js';
 import generateToken from '../utils/generateToken.js';
+import mongoose from 'mongoose';
 
 //Create user account
 export const createAccount = async (req, res) => {
@@ -40,7 +41,7 @@ export const createAccount = async (req, res) => {
         });
         await newUser.save();
 
-        const token = generateToken(newUser);
+        const token = generateToken(newUser._id, res);
 
         res.status(201).json({message: 'User account created successfully',newUser:{
             id: newUser._id,
@@ -64,29 +65,31 @@ export const createAccount = async (req, res) => {
 export const login = async (req, res) => {
     try {
         const {email, password} = req.body;
-
         const user = await User.findOne({email});
         if (!user) {
-            res.status(404).json({ message: 'User not found' });
+            return res.status(404).json({ message: 'User not found' });
         }
-
+        
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            res.status(401).json({ message: 'Invalid credentials' });
+            return res.status(401).json({ message: 'Invalid credentials' });
         }
-
-        const token = generateToken(user);
-
-        res.status(200).json({message: 'Login successful',user: {
-            id: user._id,
-            username: user.username,
-            email: user.email,
-            profilePhoto: user.profilePhoto,
-            coverPhoto: user.coverPhoto,
-            bio: user.bio,
-            theme: user.theme
-        },
-        token
+        
+        // Pass res to generateToken to set the cookie
+        const token = generateToken(user._id, res);
+        
+        res.status(200).json({
+            message: 'Login successful',
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+                profilePhoto: user.profilePhoto,
+                coverPhoto: user.coverPhoto,
+                bio: user.bio,
+                theme: user.theme
+            },
+            token
         });
     } catch (error) {
         console.log(`Error logging in: ${error}`);
@@ -104,7 +107,7 @@ export const logout = (req, res) => {
 //Get current userProfile
 export const getCurrentUserProfile = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id).select('-password');
+        const user = await User.findById(req.user._id).select('-password');
         if(!user){
             res.status(404).json({ message: 'User not found' });
         }
@@ -120,18 +123,44 @@ export const getCurrentUserProfile = async (req, res) => {
 //get other user profile
 export const getUserProfile = async (req, res) => {
     try {
-        const {UserId} = req.params;
-
-        const user = await User.findById(UserId).select('-password');
-        if(!user){
-            res.status(404).json({ message: 'User not found' });
+        // Change from {UserId} to {userId} for consistent naming convention
+        const { userId } = req.params;
+        
+        // Validate the userId input
+        if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ message: 'Invalid user ID' });
         }
 
-        res.status(200).json({message: 'User profile fetched successfully',user});
+        const user = await User.findById(userId).select('-password -__v');
+        
+        // Add return statement to prevent further execution
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Format the response data to match your application's needs
+        res.status(200).json({
+            success: true,
+            message: 'User profile fetched successfully',
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+                profilePhoto: user.profilePhoto,
+                coverPhoto: user.coverPhoto,
+                bio: user.bio,
+                theme: user.theme,
+                createdAt: user.createdAt
+                // Add any other fields you want to return
+            }
+        });
     }
-    catch (error){
+    catch (error) {
         console.log(`Error fetching user profile: ${error}`);
-        res.status(500).json({ message: 'Error fetching user profile' });
+        res.status(500).json({ 
+            success: false,
+            message: 'Error fetching user profile' 
+        });
     }
 };
 
@@ -139,22 +168,67 @@ export const getUserProfile = async (req, res) => {
 //Update user profile
 export const updateUserProfile = async (req, res) => {
     try {
-        const {username, email, profilePhoto, coverPhoto, bio, theme} = req.body;
-
+        const { username, email, bio, theme } = req.body;
+        
+        // Find user
         const user = await User.findById(req.user.id);
-        if(!user){
-            res.status(404).json({ message: 'User not found' });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
         }
 
+        // Process uploaded files if they exist
+        let profilePhotoPath = user.profilePhoto;
+        let coverPhotoPath = user.coverPhoto;
+        
+        if (req.files) {
+            // Handle profile photo upload
+            if (req.files.profilePhoto && req.files.profilePhoto.length > 0) {
+                // Create a URL path for the profile photo that can be used in frontend
+                profilePhotoPath = `/Uploads/profiles/${req.files.profilePhoto[0].filename}`;
+                console.log("Profile photo updated:", profilePhotoPath);
+            }
+            
+            // Handle cover photo upload
+            if (req.files.coverPhoto && req.files.coverPhoto.length > 0) {
+                // Create a URL path for the cover photo that can be used in frontend
+                coverPhotoPath = `/Uploads/profiles/${req.files.coverPhoto[0].filename}`;
+                console.log("Cover photo updated:", coverPhotoPath);
+            }
+        }
+
+        // Update user fields
         user.username = username || user.username;
-        user.profilePhoto = profilePhoto || user.profilePhoto;
-        user.coverPhoto = coverPhoto || user.coverPhoto;
+        user.email = email || user.email;
         user.bio = bio || user.bio;
         user.theme = theme || user.theme;
+        
+        // Update photo fields with new paths or keep existing ones
+        user.profilePhoto = profilePhotoPath;
+        user.coverPhoto = coverPhotoPath;
+        
+        // Save updated user
         await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'User profile updated successfully',
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+                profilePhoto: user.profilePhoto,
+                coverPhoto: user.coverPhoto,
+                bio: user.bio,
+                theme: user.theme
+            }
+        });
         
     } catch (error) {
-        console.log(`Error updating user profile: ${error}`);
-        res.status(500).json({ message: 'Error updating user profile' });
+        console.log(`Error updating user profile:`, error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error updating user profile',
+            error: error.message 
+        });
     }
 };
