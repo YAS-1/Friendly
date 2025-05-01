@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 
 import { connectDB } from "./config/db.config.js";
 import authRoute from "./routes/auth.route.js";
+import postRoute from "./routes/post.route.js";
 
 
 dotenv.config();
@@ -20,6 +21,7 @@ app.use(cookieParser());
 
 //Routes
 app.use('/api/auth', authRoute);
+app.use('/api/post', postRoute);
 
 const port = process.env.PORT || 5500;
 

@@ -1,9 +1,9 @@
 
-import mongoose, { Schema } from "mongoose";
+import mongoose from "mongoose";
 
-Schema = mongoose.Schema;
+const Schema = mongoose.Schema;
 
-const BookmarkSchema = new Schema({
+const BookmarkSchema = new mongoose.Schema({
     user: {
       type: Schema.Types.ObjectId,
       ref: 'User',
