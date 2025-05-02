@@ -1,5 +1,5 @@
 import express from 'express';
-import { protectRoute } from '../middleware/protectRoute.js';
+import protectRoute from '../middleware/protectRoute.js';
 import {
     getSuggestedUsers,
     followUser,
@@ -8,20 +8,18 @@ import {
     getFollowing
 } from '../controllers/follow.controller.js';
 
-const router = express.Router();
+const followRoute = express.Router();
 
-// Protected routes - require authentication
-router.use(protectRoute);
 
 // Get suggested users to follow
-router.get('/suggested', getSuggestedUsers);
+followRoute.get('/suggested', protectRoute, getSuggestedUsers);
 
 // Follow/unfollow routes
-router.post('/:userId', followUser);
-router.delete('/:userId', unfollowUser);
+followRoute.post('/followUser/:userId', protectRoute, followUser);
+followRoute.delete('/unfollowUser/:userId', protectRoute, unfollowUser);
 
 // Get followers/following
-router.get('/followers/:userId', getFollowers);
-router.get('/following/:userId', getFollowing);
+followRoute.get('/followers/:userId', protectRoute, getFollowers);
+followRoute.get('/following/:userId', protectRoute, getFollowing);
 
-export default router;
+export default followRoute;

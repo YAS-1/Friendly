@@ -3,6 +3,9 @@ import bcrypt from 'bcryptjs';
 import User from '../models/user.model.js';
 import generateToken from '../utils/generateToken.js';
 import mongoose from 'mongoose';
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+dotenv.config();
 
 //Create user account
 export const createAccount = async (req, res) => {
@@ -41,8 +44,6 @@ export const createAccount = async (req, res) => {
         });
         await newUser.save();
 
-        const token = generateToken(newUser._id, res);
-
         res.status(201).json({message: 'User account created successfully',newUser:{
             id: newUser._id,
             username: newUser.username,
@@ -52,7 +53,6 @@ export const createAccount = async (req, res) => {
             bio: newUser.bio,
             theme: newUser.theme
         },
-        token
         });
     } catch (error) {
         console.log(`Error creating user account: ${error}`);
@@ -100,7 +100,28 @@ export const login = async (req, res) => {
 
 //Logout controller
 export const logout = (req, res) => {
-    res.status(200).json({ message: 'Logout successful' });
+    try {
+        // Clear the JWT cookie
+        res.cookie('jwt', '', {
+            httpOnly: true,
+            expires: new Date(0), // This will make the cookie expire immediately
+            secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+            sameSite: 'strict', // Protect against CSRF
+            path: '/' // Cookie is available for all paths
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Logged out successfully',
+            token: null // Explicitly return null token to client
+        });
+    } catch (error) {
+        console.log(`Error logging out: ${error}`);
+        res.status(500).json({
+            success: false,
+            message: 'Error logging out'
+        });
+    }
 };
 
 

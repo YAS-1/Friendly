@@ -18,6 +18,9 @@ const getSuggestedUsers = async (req, res) => {
             { $project: {
                 password: 0,
                 email: 0,
+                coverPhoto: 0,
+                bio: 0,
+                theme: 0,
                 createdAt: 0,
                 updatedAt: 0
             }}
@@ -111,7 +114,7 @@ const getFollowers = async (req, res) => {
         const userId = req.params.userId;
 
         const followers = await Follow.find({ following: userId })
-            .populate('follower', '-password -email -createdAt -updatedAt')
+            .populate('follower', '-password -email -coverPhoto -bio -theme -createdAt -updatedAt')
             .sort('-createdAt');
 
         res.status(200).json({
@@ -133,7 +136,7 @@ const getFollowing = async (req, res) => {
         const userId = req.params.userId;
 
         const following = await Follow.find({ follower: userId })
-            .populate('following', '-password -email -createdAt -updatedAt')
+            .populate('following', '-password -email -coverPhoto -bio -theme -createdAt -updatedAt')
             .sort('-createdAt');
 
         res.status(200).json({
