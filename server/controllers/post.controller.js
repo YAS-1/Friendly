@@ -1,6 +1,7 @@
 import Post from '../models/post.model.js';
 import Bookmark from '../models/bookmark.model.js';
 import Notification from '../models/notification.model.js';
+import Comment from '../models/comment.model.js';
 
 // Create a new post
 export const createPost = async (req, res) => {
@@ -391,6 +392,93 @@ export const getUserPosts = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error fetching user posts',
+            error: error.message
+        });
+    }
+};
+
+// Create a comment on a post
+export const createComment = async (req, res) => {
+    try {
+        const { content } = req.body;
+        const postId = req.params.postId;
+
+        const post = await Post.findById(postId);
+        if (!post) {
+            return res.status(404).json({
+                success: false,
+                message: 'Post not found'
+            });
+        }
+
+        const comment = await Comment.create({
+            post: postId,
+            user: req.user._id,
+            content
+        });
+
+        // Create notification for post comment
+        if (post.user.toString() !== req.user._id.toString()) {
+            await Notification.create({
+                sender: req.user._id,
+                recipient: post.user,
+                type: 'comment',
+                post: postId,
+                read: false
+            });
+        }
+
+        await comment.populate('user', 'username profilePhoto');
+
+        res.status(201).json({
+            success: true,
+            message: 'Comment created successfully',
+            data: comment
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error creating comment',
+            error: error.message
+        });
+    }
+};
+
+// Get all comments for a post
+export const getPostComments = async (req, res) => {
+    try {
+        const postId = req.params.postId;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const post = await Post.findById(postId);
+        if (!post) {
+            return res.status(404).json({
+                success: false,
+                message: 'Post not found'
+            });
+        }
+
+        const comments = await Comment.find({ post: postId })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .populate('user', 'username profilePhoto');
+
+        const total = await Comment.countDocuments({ post: postId });
+
+        res.status(200).json({
+            success: true,
+            comments,
+            currentPage: page,
+            totalPages: Math.ceil(total / limit),
+            totalComments: total
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching comments',
             error: error.message
         });
     }

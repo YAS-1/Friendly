@@ -12,7 +12,9 @@ import {
     getBookmarkedPosts,
     getLikedPosts,
     getUserPosts,
-    getMyPosts
+    getMyPosts,
+    createComment,
+    getPostComments
 } from '../controllers/post.controller.js';
 
 const postsRouter = express.Router();
@@ -27,6 +29,9 @@ postsRouter.get('/:id', getPostById);
 postsRouter.put('/updatePost/:id', upload.array('media', 5), updatePost);
 postsRouter.delete('/deletePost/:id', deletePost);
 
+// Comment routes
+postsRouter.post('/:postId/comments', createComment);
+postsRouter.get('/:postId/comments', getPostComments);
 
 // fetch all posts of logged in user
 postsRouter.get('/me', getMyPosts);
