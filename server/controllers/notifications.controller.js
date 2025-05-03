@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import Notification from '../models/notification.model.js';
 import User from '../models/user.model.js';
 import Message from '../models/message.model.js';
@@ -8,8 +9,8 @@ const getNotifications = async (req, res) => {
         const userId = req.user._id;
 
         const notifications = await Notification.find({ recipient: userId })
-            .populate('sender', 'username profilePic')
-            .populate('post', 'image caption')
+            .populate('sender', 'username profilePhoto')
+            .populate('post', 'content media')
             .populate('message', 'content')
             .sort('-createdAt');
 
@@ -58,8 +59,8 @@ const createNotification = async (req, res) => {
         });
 
         const populatedNotification = await notification.populate([
-            { path: 'sender', select: 'username profilePic' },
-            { path: 'post', select: 'image caption' },
+            { path: 'sender', select: 'username profilePhoto' },
+            { path: 'post', select: 'content media' },
             { path: 'message', select: 'content' }
         ]);
 
