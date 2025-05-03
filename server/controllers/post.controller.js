@@ -1,5 +1,6 @@
 import Post from '../models/post.model.js';
 import Bookmark from '../models/bookmark.model.js';
+import Notification from '../models/notification.model.js';
 
 // Create a new post
 export const createPost = async (req, res) => {
@@ -191,6 +192,17 @@ export const toggleLike = async (req, res) => {
         if (likeIndex === -1) {
             // Like the post
             post.likes.push(req.user._id);
+            
+            // Create notification for post like
+            if (post.user.toString() !== req.user._id.toString()) {
+                await Notification.create({
+                    sender: req.user._id,
+                    recipient: post.user,
+                    type: 'like',
+                    post: post._id,
+                    read: false
+                });
+            }
         } else {
             // Unlike the post
             post.likes.splice(likeIndex, 1);

@@ -9,6 +9,7 @@ import { connectDB } from "./config/db.config.js";
 import authRoute from "./routes/auth.route.js";
 import postRoute from "./routes/post.route.js";
 import followRoute from "./routes/follow.route.js";
+import notificationRoute from "./routes/notifications.route.js";
 
 
 dotenv.config();
@@ -24,6 +25,7 @@ app.use(cookieParser());
 app.use('/api/auth', authRoute);
 app.use('/api/post', postRoute);
 app.use('/api/follow', followRoute);
+app.use('/api/notifications', notificationRoute);
 
 const port = process.env.PORT || 5500;
 

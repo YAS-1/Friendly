@@ -1,5 +1,6 @@
 import Follow from '../models/follow.model.js';
 import User from '../models/user.model.js';
+import Notification from '../models/notification.model.js';
 
 // Get suggested users to follow (4 random users not already followed)
 const getSuggestedUsers = async (req, res) => {
@@ -62,6 +63,14 @@ const followUser = async (req, res) => {
         const follow = await Follow.create({
             follower: followerId,
             following: followingId
+        });
+
+        // Create notification for follow
+        await Notification.create({
+            sender: followerId,
+            recipient: followingId,
+            type: 'follow',
+            read: false
         });
 
         res.status(201).json({
