@@ -31,7 +31,6 @@ postsRouter.delete('/deletePost/:id', deletePost);
 
 // Comment routes
 postsRouter.post('/:postId/comments', createComment);
-postsRouter.get('/:postId/comments', getPostComments);
 
 // fetch all posts of logged in user
 postsRouter.get('/me', getMyPosts);
