@@ -3,7 +3,6 @@ import bcrypt from 'bcryptjs';
 import User from '../models/user.model.js';
 import generateToken from '../utils/generateToken.js';
 import mongoose from 'mongoose';
-import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -15,19 +14,23 @@ export const createAccount = async (req, res) => {
         const Userexists = await User.findOne({email});
         if (Userexists) {
             res.status(400).json({ message: 'User already exists' });
+            console.log('User already exists');
         }
 
         const emailRegx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegx.test(email)) {
             res.status(400).json({ message: 'Invalid email format' });
+            console.log('Invalid email format');
         }
 
         if(password.length < 6){
             res.status(400).json({ message: 'Password must be at least 6 characters' });
+            console.log('Password must be at least 6 characters');
         }
 
         if (username.length <= 3){
             res.status(400).json({ message: 'Username must be at least 3 characters' });
+            console.log('Username must be at least 3 characters');
         }
 
         const salt = await bcrypt.genSalt(10);
@@ -67,12 +70,14 @@ export const login = async (req, res) => {
         const {email, password} = req.body;
         const user = await User.findOne({email});
         if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+            res.status(404).json({ message: 'User not found' });
+            console.log('User not found');
         }
         
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(401).json({ message: 'Invalid credentials' });
+            res.status(401).json({ message: 'Invalid credentials' });
+            console.log('Invalid credentials');
         }
         
         // Pass res to generateToken to set the cookie
@@ -131,6 +136,7 @@ export const getCurrentUserProfile = async (req, res) => {
         const user = await User.findById(req.user._id).select('-password');
         if(!user){
             res.status(404).json({ message: 'User not found' });
+            console.log('User not found');
         }
 
         res.status(200).json({message: 'User profile fetched successfully',user});
@@ -156,7 +162,8 @@ export const getUserProfile = async (req, res) => {
         
         // Add return statement to prevent further execution
         if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+            res.status(404).json({ message: 'User not found' });
+            console.log('User not found');
         }
 
         // Format the response data to match your application's needs
