@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { createContext, useState, useContext, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 
 const AuthContext = createContext();
@@ -14,9 +14,23 @@ export const AuthProvider = ({ children }) => {
 	const [user, setUser] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const navigate = useNavigate();
+	const location = useLocation();
 
-	// Check if user is logged in on initial load
+	// List of public routes
+	const publicRoutes = [
+		"/login",
+		"/register",
+		"/forgot-password",
+		"/reset-password",
+	];
+
+	// Check if user is logged in on initial load, but skip on public pages
 	useEffect(() => {
+		// If on a public route, skip auth check
+		if (publicRoutes.some((route) => location.pathname.startsWith(route))) {
+			setLoading(false);
+			return;
+		}
 		const checkAuthStatus = async () => {
 			try {
 				const { data } = await axios.get("/auth/myProfile");
@@ -33,9 +47,8 @@ export const AuthProvider = ({ children }) => {
 				setLoading(false);
 			}
 		};
-
 		checkAuthStatus();
-	}, []);
+	}, [location.pathname]);
 
 	// Login function
 	const login = async (email, password) => {

@@ -10,7 +10,7 @@ import followRoute from "./routes/follow.route.js";
 import notificationRoute from "./routes/notifications.route.js";
 import messageRoute from "./routes/message.route.js";
 import searchRoute from "./routes/search.route.js";
-import passwordResetRoute from "./routes/passwordReset.route.js";
+import passwordResetRoute from "./routes/passwordReset.routes.js";
 import setupSocket from "./socket/socket.js";
 
 dotenv.config();

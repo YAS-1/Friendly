@@ -15,34 +15,32 @@ export const requestPasswordReset = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Generate unique token
-        const token = crypto.randomBytes(32).toString('hex');
+        // Generate 4-digit code
+        const resetCode = Math.floor(1000 + Math.random() * 9000).toString();
         const expiresAt = new Date(Date.now() + 3600000); // 1 hour from now
 
-        // Save reset token
+        // Save reset code
         await PasswordReset.create({
             user: user._id,
-            token,
+            token: resetCode,
             expiresAt
         });
 
-        // Create reset link
-        const resetLink = `${process.env.CLIENT_URL}/reset-password/${token}`;
-
-        // Send email
+        // Send email with code
         await sendEmail({
             to: email,
-            subject: 'Password Reset Request',
+            subject: 'Password Reset Code',
             html: `
-                <h1>Password Reset Request</h1>
-                <p>Click the link below to reset your password. This link will expire in 1 hour.</p>
-                <a href="${resetLink}">Reset Password</a>
+                <h1>Password Reset Code</h1>
+                <p>Your password reset code is: <strong>${resetCode}</strong></p>
+                <p>This code will expire in 1 hour.</p>
                 <p>If you didn't request this, please ignore this email.</p>
             `
         });
 
         res.status(200).json({ 
-            message: 'Password reset link sent to your email' 
+            message: 'Password reset code sent to your email',
+            email: email // Send back email for frontend use
         });
 
     } catch (error) {
@@ -53,16 +51,64 @@ export const requestPasswordReset = async (req, res) => {
     }
 };
 
-// Reset password with token
+// Verify reset code
+export const verifyResetCode = async (req, res) => {
+    try {
+        const { email, code } = req.body;
+
+        // Find user by email
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Find valid reset code
+        const passwordReset = await PasswordReset.findOne({
+            user: user._id,
+            token: code,
+            expiresAt: { $gt: new Date() }
+        });
+
+        if (!passwordReset) {
+            return res.status(400).json({ 
+                message: 'Invalid or expired reset code' 
+            });
+        }
+
+        // Generate a temporary token for password reset
+        const tempToken = crypto.randomBytes(32).toString('hex');
+        
+        // Update the reset record with the temp token
+        await PasswordReset.findByIdAndUpdate(passwordReset._id, {
+            token: tempToken,
+            expiresAt: new Date(Date.now() + 900000) // 15 minutes
+        });
+
+        res.status(200).json({ 
+            message: 'Reset code verified',
+            tempToken,
+            userId: user._id
+        });
+
+    } catch (error) {
+        console.error('Reset code verification error:', error);
+        res.status(500).json({ 
+            message: 'Error verifying reset code' 
+        });
+    }
+};
+
+// Reset password with temp token
 export const resetPassword = async (req, res) => {
     try {
-        const { token, newPassword } = req.body;
+        const { tempToken, newPassword, userId } = req.body;
 
         // Find valid reset token
         const passwordReset = await PasswordReset.findOne({
-            token,
+            user: userId,
+            token: tempToken,
             expiresAt: { $gt: new Date() }
-        }).populate('user');
+        });
 
         if (!passwordReset) {
             return res.status(400).json({ 
@@ -76,7 +122,7 @@ export const resetPassword = async (req, res) => {
 
         // Update user's password
         await User.findByIdAndUpdate(
-            passwordReset.user._id,
+            userId,
             { password: hashedPassword }
         );
 
