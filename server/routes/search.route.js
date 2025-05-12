@@ -1,11 +1,10 @@
 import express from 'express';
-import { searchUsers, searchPosts } from '../controllers/search.controller.js';
+import { search } from '../controllers/search.controller.js';
 import protectRoute from '../middleware/protectRoute.js';
 
 const searchRoute = express.Router();
 
-// Protected search routes
-searchRoute.get('/users', protectRoute, searchUsers);
-searchRoute.get('/posts', protectRoute, searchPosts);
+// Protected search route
+searchRoute.get('/', protectRoute, search);
 
 export default searchRoute;

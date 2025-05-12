@@ -35,6 +35,28 @@ export const createPost = async (req, res) => {
     }
 };
 
+// Helper to add isBookmarked and comments to posts
+const enrichPosts = async (posts, userId) => {
+    // Get all bookmarks for this user
+    const bookmarks = await Bookmark.find({ user: userId });
+    const bookmarkedPostIds = new Set(bookmarks.map(b => b.post.toString()));
+
+    // For each post, populate comments and add isBookmarked
+    return Promise.all(posts.map(async (post) => {
+        const populatedPost = await Post.findById(post._id)
+            .populate('user', 'username profilePhoto')
+            .populate('likes', 'username profilePhoto');
+        // Populate comments with user info
+        const comments = await Comment.find({ post: post._id })
+            .sort({ createdAt: -1 })
+            .populate('user', 'username profilePhoto');
+        const postObj = populatedPost.toObject();
+        postObj.comments = comments;
+        postObj.isBookmarked = bookmarkedPostIds.has(post._id.toString());
+        return postObj;
+    }));
+};
+
 // Get all posts (with pagination)
 export const getAllPosts = async (req, res) => {
     try {
@@ -45,15 +67,14 @@ export const getAllPosts = async (req, res) => {
         const posts = await Post.find()
             .sort({ createdAt: -1 })
             .skip(skip)
-            .limit(limit)
-            .populate('user', 'username profilePhoto')
-            .populate('likes', 'username profilePhoto');
+            .limit(limit);
 
         const total = await Post.countDocuments();
+        const enrichedPosts = await enrichPosts(posts, req.user._id);
 
         res.status(200).json({
             success: true,
-            posts,
+            posts: enrichedPosts,
             currentPage: page,
             totalPages: Math.ceil(total / limit),
             totalPosts: total
@@ -73,17 +94,24 @@ export const getPostById = async (req, res) => {
         const post = await Post.findById(req.params.id)
             .populate('user', 'username profilePhoto')
             .populate('likes', 'username profilePhoto');
-
         if (!post) {
             return res.status(404).json({
                 success: false,
                 message: 'Post not found'
             });
         }
-
+        // Populate comments
+        const comments = await Comment.find({ post: post._id })
+            .sort({ createdAt: -1 })
+            .populate('user', 'username profilePhoto');
+        // Check if bookmarked
+        const isBookmarked = await Bookmark.exists({ user: req.user._id, post: post._id });
+        const postObj = post.toObject();
+        postObj.comments = comments;
+        postObj.isBookmarked = !!isBookmarked;
         res.status(200).json({
             success: true,
-            post
+            post: postObj
         });
     } catch (error) {
         res.status(500).json({
@@ -161,13 +189,15 @@ export const deletePost = async (req, res) => {
             });
         }
 
-        await post.remove();
+        // await post.remove();
+        await post.deleteOne();
 
         res.status(200).json({
             success: true,
             message: 'Post deleted successfully'
         });
     } catch (error) {
+        console.error('Delete post error:', error);
         res.status(500).json({
             success: false,
             message: 'Error deleting post',
@@ -238,6 +268,8 @@ export const toggleBookmark = async (req, res) => {
         if (existingBookmark) {
             // Remove bookmark
             await Bookmark.findByIdAndDelete(existingBookmark._id);
+            // Remove user from post.bookmarks array
+            await Post.findByIdAndUpdate(postId, { $pull: { bookmarks: userId } });
             res.status(200).json({
                 success: true,
                 message: 'Post unbookmarked'
@@ -249,6 +281,8 @@ export const toggleBookmark = async (req, res) => {
                 post: postId
             });
             await newBookmark.save();
+            // Add user to post.bookmarks array
+            await Post.findByIdAndUpdate(postId, { $addToSet: { bookmarks: userId } });
             res.status(200).json({
                 success: true,
                 message: 'Post bookmarked'
@@ -284,9 +318,15 @@ export const getBookmarkedPosts = async (req, res) => {
 
         const total = await Bookmark.countDocuments({ user: req.user._id });
 
+        // Get the posts from bookmarks
+        const posts = bookmarks.map(bookmark => bookmark.post);
+
+        // Enrich posts with comments and isBookmarked
+        const enrichedPosts = await enrichPosts(posts, req.user._id);
+
         res.status(200).json({
             success: true,
-            bookmarkedPosts: bookmarks.map(bookmark => bookmark.post),
+            bookmarkedPosts: enrichedPosts,
             currentPage: page,
             totalPages: Math.ceil(total / limit),
             totalBookmarks: total
@@ -310,15 +350,14 @@ export const getLikedPosts = async (req, res) => {
         const posts = await Post.find({ likes: req.user._id })
             .sort({ createdAt: -1 })
             .skip(skip)
-            .limit(limit)
-            .populate('user', 'username profilePhoto')
-            .populate('likes', 'username profilePhoto');
+            .limit(limit);
 
         const total = await Post.countDocuments({ likes: req.user._id });
+        const enrichedPosts = await enrichPosts(posts, req.user._id);
 
         res.status(200).json({
             success: true,
-            likedPosts: posts,
+            likedPosts: enrichedPosts,
             currentPage: page,
             totalPages: Math.ceil(total / limit),
             totalLikedPosts: total
@@ -342,15 +381,14 @@ export const getMyPosts = async (req, res) => {
         const posts = await Post.find({ user: req.user._id })
             .sort({ createdAt: -1 })
             .skip(skip)
-            .limit(limit)
-            .populate('user', 'username profilePhoto')
-            .populate('likes', 'username profilePhoto');
+            .limit(limit);
 
         const total = await Post.countDocuments({ user: req.user._id });
+        const enrichedPosts = await enrichPosts(posts, req.user._id);
 
         res.status(200).json({
             success: true,
-            posts,
+            posts: enrichedPosts,
             currentPage: page,
             totalPages: Math.ceil(total / limit),
             totalPosts: total
@@ -375,15 +413,14 @@ export const getUserPosts = async (req, res) => {
         const posts = await Post.find({ user: userId })
             .sort({ createdAt: -1 })
             .skip(skip)
-            .limit(limit)
-            .populate('user', 'username profilePhoto')
-            .populate('likes', 'username profilePhoto');
+            .limit(limit);
 
         const total = await Post.countDocuments({ user: userId });
+        const enrichedPosts = await enrichPosts(posts, req.user._id);
 
         res.status(200).json({
             success: true,
-            posts,
+            posts: enrichedPosts,
             currentPage: page,
             totalPages: Math.ceil(total / limit),
             totalPosts: total
@@ -416,6 +453,9 @@ export const createComment = async (req, res) => {
             user: req.user._id,
             content
         });
+
+        // Push comment reference to post.comments array (if you want to keep a reference)
+        // await Post.findByIdAndUpdate(postId, { $push: { comments: comment._id } });
 
         // Create notification for post comment
         if (post.user.toString() !== req.user._id.toString()) {

@@ -10,6 +10,7 @@ import followRoute from "./routes/follow.route.js";
 import notificationRoute from "./routes/notifications.route.js";
 import messageRoute from "./routes/message.route.js";
 import searchRoute from "./routes/search.route.js";
+import passwordResetRoute from "./routes/passwordReset.route.js";
 import setupSocket from "./socket/socket.js";
 
 dotenv.config();
@@ -44,6 +45,7 @@ app.use('/api/follow', followRoute);
 app.use('/api/notifications', notificationRoute);
 app.use('/api/messages', messageRoute);
 app.use('/api/search', searchRoute);
+app.use('/api/password-reset', passwordResetRoute);
 
 // Connect to database
 connectDB();

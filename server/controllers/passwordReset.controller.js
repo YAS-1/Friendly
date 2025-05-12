@@ -2,7 +2,7 @@ import User from '../models/user.model.js';
 import PasswordReset from '../models/passwordReset.model.js';
 import { sendEmail } from '../config/mailer.config.js';
 import crypto from 'crypto';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 // Request password reset
 export const requestPasswordReset = async (req, res) => {

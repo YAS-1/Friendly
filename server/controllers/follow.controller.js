@@ -161,10 +161,35 @@ const getFollowing = async (req, res) => {
     }
 };
 
+// Check if the current user is following a given user
+const checkFollowStatus = async (req, res) => {
+    try {
+        const followerId = req.user._id;
+        const followingId = req.params.userId;
+
+        const existingFollow = await Follow.findOne({
+            follower: followerId,
+            following: followingId
+        });
+
+        res.status(200).json({
+            success: true,
+            isFollowing: !!existingFollow
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error checking follow status',
+            error: error.message
+        });
+    }
+};
+
 export {
     getSuggestedUsers,
     followUser,
     unfollowUser,
     getFollowers,
-    getFollowing
+    getFollowing,
+    checkFollowStatus
 };
