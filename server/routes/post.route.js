@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import express from 'express';
 import protectRoute  from '../middleware/protectRoute.js';
 import upload from '../config/postMulter.config.js';
