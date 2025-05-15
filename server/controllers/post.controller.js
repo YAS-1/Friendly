@@ -347,12 +347,15 @@ export const getLikedPosts = async (req, res) => {
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
 
-        const posts = await Post.find({ likes: req.user._id })
+        // Determine which user's likes to fetch
+        const targetUserId = req.params.userId || req.user._id;
+
+        const posts = await Post.find({ likes: targetUserId })
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
 
-        const total = await Post.countDocuments({ likes: req.user._id });
+        const total = await Post.countDocuments({ likes: targetUserId });
         const enrichedPosts = await enrichPosts(posts, req.user._id);
 
         res.status(200).json({

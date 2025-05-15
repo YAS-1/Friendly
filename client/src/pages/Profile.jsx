@@ -65,10 +65,14 @@ const Profile = () => {
 	const { data: likedPosts, isLoading: likesLoading } = useQuery({
 		queryKey: ["likedPosts", userId],
 		queryFn: async () => {
-			const response = await axios.get("/posts/likes/me");
+			const response = await axios.get(
+				currentUser?._id === userId
+					? "/posts/likes/me"
+					: `/posts/likes/user/${userId}`
+			);
 			return response.data.likedPosts;
 		},
-		enabled: !!userId && currentUser?._id === userId,
+		enabled: !!userId,
 	});
 
 	// Check if following
@@ -384,9 +388,11 @@ const Profile = () => {
 							<div className='flex justify-center py-8'>
 								<div className='animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500'></div>
 							</div>
-						) : likedPosts?.length === 0 ? (
+						) : !likedPosts || likedPosts.length === 0 ? (
 							<div className='text-center py-8 text-gray-500 dark:text-gray-400'>
-								Liked posts will appear here
+								{isOwnProfile
+									? "You haven't liked any posts yet"
+									: "No liked posts to show"}
 							</div>
 						) : (
 							likedPosts.map((post) => <PostCard key={post._id} post={post} />)

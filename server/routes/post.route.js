@@ -42,5 +42,6 @@ postsRouter.post('/:id/like', toggleLike);
 postsRouter.post('/:id/bookmark', toggleBookmark);
 postsRouter.get('/bookmarks/me', getBookmarkedPosts);
 postsRouter.get('/likes/me', getLikedPosts);
+postsRouter.get('/likes/user/:userId', getLikedPosts);
 
 export default postsRouter;
