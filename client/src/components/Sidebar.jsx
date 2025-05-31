@@ -38,7 +38,7 @@ const Sidebar = () => {
 	return (
 		<div className='fixed h-screen w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4 flex flex-col'>
 			{/* Navigation Links */}
-			<nav className='flex-1'>
+			<nav className='flex-1 overflow-y-auto pr-2'>
 				<ul className='space-y-2'>
 					{navItems.map((item) => (
 						<li key={item.path}>
@@ -87,7 +87,7 @@ const Sidebar = () => {
 			</div>
 
 			{/* Copyright */}
-			<div className='mt-auto text-center text-xs text-gray-400 dark:text-gray-600'>
+			<div className='text-center text-xs text-gray-400 dark:text-gray-600 mt-2'>
 				© {new Date().getFullYear()} Friendly by Yawe Arthur Shalom. All rights
 				reserved.
 			</div>
