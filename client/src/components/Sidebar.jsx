@@ -68,7 +68,7 @@ const Sidebar = () => {
 			</button>
 
 			{/* User Profile Section */}
-			<div className='pt-2 border-t border-gray-200 dark:border-gray-700'>
+			<div className='pt-2 border-t border-gray-200 dark:border-gray-700 mt-auto'>
 				<div className='flex items-center gap-3 mt-4'>
 					<ProfilePhoto
 						src={user?.profilePhoto}
@@ -88,8 +88,8 @@ const Sidebar = () => {
 
 			{/* Copyright */}
 			<div className='text-center text-xs text-gray-400 dark:text-gray-600 mt-2'>
-				© {new Date().getFullYear()} Friendly by Yawe Arthur Shalom-YAS. All rights
-				reserved.
+				© {new Date().getFullYear()} Friendly by Yawe Arthur Shalom-YAS. All
+				rights reserved.
 			</div>
 		</div>
 	);
