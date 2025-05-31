@@ -323,7 +323,7 @@ const PostCard = ({ post, activeTab }) => {
 										: `http://localhost:5500${mediaUrl}`
 								}
 								alt='Post media'
-								className='w-full h-48 sm:h-64 object-cover'
+								className='w-full h-48 sm:h-64 object-contain'
 							/>
 						) : (
 							<video
@@ -334,7 +334,7 @@ const PostCard = ({ post, activeTab }) => {
 										: `http://localhost:5500${mediaUrl}`
 								}
 								controls
-								className='w-full h-48 sm:h-64 object-cover'
+								className='w-full h-48 sm:h-64 object-contain'
 							/>
 						);
 					})}
