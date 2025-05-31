@@ -320,10 +320,10 @@ const PostCard = ({ post, activeTab }) => {
 								src={
 									mediaUrl.startsWith("http")
 										? mediaUrl
-										: `http://localhost:5500${mediaUrl}`
+										: `${axios.defaults.baseURL}${mediaUrl}`
 								}
 								alt='Post media'
-								className='w-full h-48 sm:h-64 object-contain'
+								className='w-full object-contain'
 							/>
 						) : (
 							<video
@@ -331,10 +331,10 @@ const PostCard = ({ post, activeTab }) => {
 								src={
 									mediaUrl.startsWith("http")
 										? mediaUrl
-										: `http://localhost:5500${mediaUrl}`
+										: `${axios.defaults.baseURL}${mediaUrl}`
 								}
 								controls
-								className='w-full h-48 sm:h-64 object-contain'
+								className='w-full object-contain'
 							/>
 						);
 					})}
