@@ -68,7 +68,7 @@ const Sidebar = () => {
 			</button>
 
 			{/* User Profile Section */}
-			<div className='pt-2 border-t border-gray-200 dark:border-gray-700 shrink-0 mt-2'>
+			{/* <div className='pt-2 border-t border-gray-200 dark:border-gray-700 shrink-0 mt-2'>
 				<div className='flex items-center gap-3 mt-4'>
 					<ProfilePhoto
 						src={user?.profilePhoto}
@@ -84,7 +84,7 @@ const Sidebar = () => {
 						</p>
 					</div>
 				</div>
-			</div>
+			</div> */}
 
 			{/* Copyright */}
 			<div className='text-center text-xs text-gray-400 dark:text-gray-600 mt-2 shrink-0'>
