@@ -88,7 +88,7 @@ const Sidebar = () => {
 
 			{/* Copyright */}
 			<div className='text-center text-xs text-gray-400 dark:text-gray-600 mt-2'>
-				© {new Date().getFullYear()} Friendly by Yawe Arthur Shalom. All rights
+				© {new Date().getFullYear()} Friendly by Yawe Arthur Shalom-YAS. All rights
 				reserved.
 			</div>
 		</div>
