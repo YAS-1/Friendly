@@ -1,5 +1,5 @@
 import User from '../models/user.model.js';
-import PasswordReset from '../models/passwordReset.model.js';
+import PasswordReset from '../models/PasswordReset.model.js';
 import { sendEmail } from '../config/mailer.config.js';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
