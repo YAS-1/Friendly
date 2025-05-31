@@ -39,7 +39,7 @@ const Sidebar = () => {
 		<div className='fixed h-screen w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4 flex flex-col'>
 			{/* Navigation Links */}
 			<nav className='flex-1 overflow-y-auto pr-2'>
-				<ul className='space-y-2'>
+				<ul className='space-y-1 mb-1'>
 					{navItems.map((item) => (
 						<li key={item.path}>
 							<NavLink
@@ -62,13 +62,13 @@ const Sidebar = () => {
 			{/* Logout Button */}
 			<button
 				onClick={logout}
-				className='w-full flex items-center gap-3 px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors shrink-0 mt-4'>
+				className='w-full flex items-center gap-3 px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors shrink-0 mt-2'>
 				<FiLogOut size={20} />
 				<span>Logout</span>
 			</button>
 
 			{/* User Profile Section */}
-			{/* <div className='pt-2 border-t border-gray-200 dark:border-gray-700 shrink-0 mt-2'>
+			<div className='pt-2 border-t border-gray-200 dark:border-gray-700 shrink-0 mt-2'>
 				<div className='flex items-center gap-3 mt-4'>
 					<ProfilePhoto
 						src={user?.profilePhoto}
@@ -84,7 +84,7 @@ const Sidebar = () => {
 						</p>
 					</div>
 				</div>
-			</div> */}
+			</div>
 
 			{/* Copyright */}
 			<div className='text-center text-xs text-gray-400 dark:text-gray-600 mt-2 shrink-0'>
