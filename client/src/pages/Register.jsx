@@ -131,6 +131,7 @@ const Register = () => {
 											: "border-gray-300 dark:border-gray-600"
 									} rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white`}
 									placeholder='johndoe'
+									required
 								/>
 							</div>
 							{errors.username && (
@@ -162,6 +163,7 @@ const Register = () => {
 											: "border-gray-300 dark:border-gray-600"
 									} rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white`}
 									placeholder='you@example.com'
+									required
 								/>
 							</div>
 							{errors.email && (
@@ -193,6 +195,7 @@ const Register = () => {
 											: "border-gray-300 dark:border-gray-600"
 									} rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white`}
 									placeholder='••••••••'
+									required
 								/>
 								<div className='absolute inset-y-0 right-0 pr-3 flex items-center'>
 									<button
@@ -232,6 +235,7 @@ const Register = () => {
 											: "border-gray-300 dark:border-gray-600"
 									} rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white`}
 									placeholder='••••••••'
+									required
 								/>
 							</div>
 							{errors.confirmPassword && (
