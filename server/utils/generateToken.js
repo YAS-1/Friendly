@@ -17,8 +17,8 @@ const generateToken = (id, res) => {
   if (res) {
     res.cookie('jwt', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Changed to match logout handler
-      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production', // Ensure secure is true in production
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'strict', // Use None for production cross-site
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       path: '/' // Added to ensure cookie is available for all paths
     });
