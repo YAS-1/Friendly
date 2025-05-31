@@ -25,7 +25,12 @@ const Bookmarks = () => {
 				);
 				return response.data.bookmarkedPosts;
 			} catch (error) {
-				console.error("Error fetching bookmarks:", error);
+				console.error("Error fetching bookmarks:", {
+					status: error.response?.status,
+					message: error.message,
+					data: error.response?.data,
+					url: error.config?.url,
+				});
 				throw error;
 			}
 		},
@@ -38,7 +43,12 @@ const Bookmarks = () => {
 			try {
 				return await axios.post(`/posts/${postId}/bookmark`);
 			} catch (error) {
-				console.error("Error removing bookmark:", error);
+				console.error("Error removing bookmark:", {
+					status: error.response?.status,
+					message: error.message,
+					data: error.response?.data,
+					url: error.config?.url,
+				});
 				throw error;
 			}
 		},

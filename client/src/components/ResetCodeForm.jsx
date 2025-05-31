@@ -10,11 +10,21 @@ const ResetCodeForm = ({ email }) => {
 
 	const verifyCodeMutation = useMutation({
 		mutationFn: async () => {
-			const response = await axios.post("/password-reset/verify-code", {
-				email,
-				code,
-			});
-			return response.data;
+			try {
+				const response = await axios.post("/password-reset/verify-code", {
+					email,
+					code,
+				});
+				return response.data;
+			} catch (error) {
+				console.error("Error verifying reset code:", {
+					status: error.response?.status,
+					message: error.message,
+					data: error.response?.data,
+					url: error.config?.url,
+				});
+				throw error;
+			}
 		},
 		onSuccess: (data) => {
 			// Navigate to reset password page with the temp token

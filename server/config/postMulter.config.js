@@ -1,15 +1,17 @@
 import multer from 'multer';
-import path from 'path';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
+import cloudinary from './cloudinary.config.js';
 
-// Configure storage for post media
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'Uploads/posts'); // Store post media in Uploads/posts directory
-    },
-    filename: (req, file, cb) => {
-        // Generate unique filename with timestamp
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+// Configure storage for post media using Cloudinary
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'friendly/posts',
+        allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'mp4', 'mpeg', 'quicktime'],
+        resource_type: 'auto',
+        transformation: [
+            { width: 1000, height: 1000, crop: 'limit' }
+        ]
     }
 });
 

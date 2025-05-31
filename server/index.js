@@ -32,9 +32,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Serve static files
-app.use('/Uploads', express.static('Uploads'));
-
 // Make io accessible to routes
 app.set('io', io);
 

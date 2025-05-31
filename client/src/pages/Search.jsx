@@ -7,6 +7,7 @@ import { FiSearch, FiUser, FiMessageSquare } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
 import PostCard from "../components/PostCard";
 import toast from "react-hot-toast";
+import ProfilePhoto from "../components/ProfilePhoto";
 
 const Search = () => {
 	const { user } = useAuth();
@@ -16,6 +17,14 @@ const Search = () => {
 		searchParams.get("type") || "all"
 	);
 	const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+
+	// Define search types
+	const searchTypes = [
+		{ value: "all", label: "All" },
+		{ value: "users", label: "Users" },
+		{ value: "posts", label: "Posts" },
+		{ value: "hashtags", label: "Hashtags" },
+	];
 
 	// Update URL when search parameters change
 	useEffect(() => {
@@ -53,7 +62,12 @@ const Search = () => {
 				);
 				return response.data;
 			} catch (error) {
-				console.error("Error fetching search results:", error);
+				console.error("Error fetching search results:", {
+					status: error.response?.status,
+					message: error.message,
+					data: error.response?.data,
+					url: error.config?.url,
+				});
 				toast.error("Failed to fetch search results");
 				throw error;
 			}
@@ -73,169 +87,126 @@ const Search = () => {
 	};
 
 	return (
-		<div className='max-w-4xl mx-auto p-4'>
-			<h1 className='text-2xl font-bold mb-6 dark:text-white'>Search</h1>
-
-			{/* Search input */}
-			<div className='relative mb-6'>
-				<div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-					<FiSearch className='text-gray-500' />
+		<div className='max-w-4xl mx-auto p-2 sm:p-4'>
+			{/* Search Header */}
+			<div className='mb-4'>
+				<div className='relative'>
+					<input
+						type='text'
+						value={searchTerm}
+						onChange={(e) => setSearchTerm(e.target.value)}
+						placeholder='Search users, posts, or hashtags...'
+						className='w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-sm sm:text-base'
+					/>
+					<FiSearch className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-5 h-5' />
 				</div>
-				<input
-					type='text'
-					className='block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500'
-					placeholder='Search for users, posts, or hashtags...'
-					value={searchTerm}
-					onChange={handleSearchChange}
-				/>
 			</div>
 
-			{/* Search type tabs */}
-			<div className='flex border-b dark:border-gray-700 mb-6'>
-				<button
-					className={`px-4 py-2 flex items-center gap-1 ${
-						searchType === "all"
-							? "border-b-2 border-blue-500 text-blue-600 dark:text-blue-400"
-							: "text-gray-600 dark:text-gray-400"
-					}`}
-					onClick={() => handleSearchTypeChange("all")}>
-					All
-				</button>
-				<button
-					className={`px-4 py-2 flex items-center gap-1 ${
-						searchType === "users"
-							? "border-b-2 border-blue-500 text-blue-600 dark:text-blue-400"
-							: "text-gray-600 dark:text-gray-400"
-					}`}
-					onClick={() => handleSearchTypeChange("users")}>
-					<FiUser size={16} /> Users
-				</button>
-				<button
-					className={`px-4 py-2 flex items-center gap-1 ${
-						searchType === "posts"
-							? "border-b-2 border-blue-500 text-blue-600 dark:text-blue-400"
-							: "text-gray-600 dark:text-gray-400"
-					}`}
-					onClick={() => handleSearchTypeChange("posts")}>
-					<FiMessageSquare size={16} /> Posts
-				</button>
+			{/* Search Type Tabs */}
+			<div className='flex space-x-2 mb-4 overflow-x-auto pb-2'>
+				{searchTypes.map((type) => (
+					<button
+						key={type.value}
+						onClick={() => setSearchType(type.value)}
+						className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap ${
+							searchType === type.value
+								? "bg-blue-600 text-white"
+								: "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+						}`}>
+						{type.label}
+					</button>
+				))}
 			</div>
 
-			{/* Loading state */}
-			{isLoading && debouncedSearchTerm && (
-				<div className='flex justify-center py-8'>
-					<div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500'></div>
-				</div>
-			)}
-
-			{/* Error state */}
-			{error && (
-				<div className='text-center py-8 text-red-500 dark:text-red-400'>
-					Failed to load search results. Please try again.
-				</div>
-			)}
-
-			{/* Empty search term */}
-			{!debouncedSearchTerm && !isLoading && (
-				<div className='text-center py-8 text-gray-500 dark:text-gray-400'>
-					Enter a search term to find users, posts, or hashtags.
-				</div>
-			)}
-
-			{/* No results */}
-			{debouncedSearchTerm &&
-				!isLoading &&
-				!error &&
-				searchResults &&
-				((searchType === "all" &&
-					searchResults.users?.length === 0 &&
-					searchResults.posts?.length === 0) ||
-					(searchType === "users" && searchResults.users?.length === 0) ||
-					(searchType === "posts" && searchResults.posts?.length === 0)) && (
-					<div className='text-center py-8 text-gray-500 dark:text-gray-400'>
-						No results found for "{debouncedSearchTerm}".
+			{/* Search Results */}
+			<div className='space-y-4'>
+				{isLoading ? (
+					<div className='flex justify-center py-8'>
+						<div className='animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500'></div>
 					</div>
-				)}
-
-			{/* Search results */}
-			{!isLoading && !error && searchResults && (
-				<div className='space-y-6'>
-					{/* Users section */}
-					{(searchType === "all" || searchType === "users") &&
-						searchResults.users?.length > 0 && (
-							<div>
-								<h2 className='text-xl font-semibold mb-3 dark:text-white'>
+				) : error ? (
+					<div className='text-center py-8 text-red-500 dark:text-red-400'>
+						Failed to load search results. Please try again.
+					</div>
+				) : !debouncedSearchTerm ? (
+					<div className='text-center py-8 text-gray-500 dark:text-gray-400'>
+						Start typing to search...
+					</div>
+				) : searchResults.users?.length === 0 &&
+				  searchResults.posts?.length === 0 &&
+				  searchResults.hashtags?.length === 0 ? (
+					<div className='text-center py-8 text-gray-500 dark:text-gray-400'>
+						No results found for "{debouncedSearchTerm}"
+					</div>
+				) : (
+					<>
+						{/* Users Results */}
+						{searchType === "all" || searchType === "users" ? (
+							<div className='space-y-2'>
+								<h2 className='text-lg font-semibold text-gray-900 dark:text-white mb-2'>
 									Users
 								</h2>
-								<div className='space-y-2'>
-									{searchResults.users.map((user) => (
-										<Link
-											key={user._id}
-											to={`/profile/${user._id}`}
-											className='flex items-center p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors'>
-											<div className='flex-shrink-0'>
-												{user.profilePhoto ? (
-													<img
-														src={`http://localhost:5500${user.profilePhoto}`}
-														alt={user.username}
-														className='w-12 h-12 rounded-full object-cover'
-													/>
-												) : (
-													<div className='w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center'>
-														<FiUser
-															size={24}
-															className='text-gray-500 dark:text-gray-400'
-														/>
-													</div>
-												)}
-											</div>
-											<div className='ml-3'>
-												<p className='font-medium dark:text-white'>
-													{user.username}
-												</p>
-												<p className='text-sm text-gray-500 dark:text-gray-400'>
-													{user.bio
-														? user.bio.substring(0, 50) +
-														  (user.bio.length > 50 ? "..." : "")
-														: ""}
-												</p>
-											</div>
-										</Link>
-									))}
-								</div>
-								{searchType === "all" && searchResults.users.length > 5 && (
+								{searchResults.users?.map((user) => (
 									<Link
-										to={`/search?type=users&q=${searchTerm}`}
-										className='block text-center text-blue-600 dark:text-blue-400 hover:underline mt-2'>
-										View all users
+										key={user._id}
+										to={`/profile/${user._id}`}
+										className='flex items-center space-x-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg'>
+										<ProfilePhoto
+											src={user.profilePhoto}
+											alt={user.username}
+											className='w-10 h-10 rounded-full'
+										/>
+										<div>
+											<p className='font-medium text-gray-900 dark:text-white'>
+												{user.username}
+											</p>
+											<p className='text-sm text-gray-500 dark:text-gray-400'>
+												{user.fullName}
+											</p>
+										</div>
 									</Link>
-								)}
+								))}
 							</div>
-						)}
+						) : null}
 
-					{/* Posts section */}
-					{(searchType === "all" || searchType === "posts") &&
-						searchResults.posts?.length > 0 && (
-							<div>
-								<h2 className='text-xl font-semibold mb-3 dark:text-white'>
+						{/* Posts Results */}
+						{searchType === "all" || searchType === "posts" ? (
+							<div className='space-y-2'>
+								<h2 className='text-lg font-semibold text-gray-900 dark:text-white mb-2'>
 									Posts
 								</h2>
-								<div className='space-y-4'>
-									{searchResults.posts.map((post) => (
-										<PostCard key={post._id} post={post} />
-									))}
-								</div>
-								{searchType === "all" && searchResults.posts.length > 3 && (
-									<Link
-										to={`/search?type=posts&q=${searchTerm}`}
-										className='block text-center text-blue-600 dark:text-blue-400 hover:underline mt-2'>
-										View all posts
-									</Link>
-								)}
+								{searchResults.posts?.map((post) => (
+									<PostCard key={post._id} post={post} />
+								))}
 							</div>
-						)}
-				</div>
-			)}
+						) : null}
+
+						{/* Hashtags Results */}
+						{searchType === "all" || searchType === "hashtags" ? (
+							<div className='space-y-2'>
+								<h2 className='text-lg font-semibold text-gray-900 dark:text-white mb-2'>
+									Hashtags
+								</h2>
+								{searchResults.hashtags?.map((hashtag) => (
+									<Link
+										key={hashtag}
+										to={`/hashtag/${hashtag}`}
+										className='flex items-center space-x-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg'>
+										<span className='text-blue-600 dark:text-blue-400 text-lg'>
+											#
+										</span>
+										<div>
+											<p className='font-medium text-gray-900 dark:text-white'>
+												{hashtag}
+											</p>
+										</div>
+									</Link>
+								))}
+							</div>
+						) : null}
+					</>
+				)}
+			</div>
 		</div>
 	);
 };

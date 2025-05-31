@@ -4,6 +4,7 @@ import User from '../models/user.model.js';
 import generateToken from '../utils/generateToken.js';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import { deleteFromCloudinary } from '../utils/cloudinaryUtils.js';
 dotenv.config();
 
 //Create user account
@@ -211,15 +212,21 @@ export const updateUserProfile = async (req, res) => {
         if (req.files) {
             // Handle profile photo upload
             if (req.files.profilePhoto && req.files.profilePhoto.length > 0) {
-                // Create a URL path for the profile photo that can be used in frontend
-                profilePhotoPath = `/Uploads/profiles/${req.files.profilePhoto[0].filename}`;
+                // Delete old profile photo if it exists
+                if (user.profilePhoto) {
+                    await deleteFromCloudinary(user.profilePhoto);
+                }
+                profilePhotoPath = req.files.profilePhoto[0].path;
                 console.log("Profile photo updated:", profilePhotoPath);
             }
             
             // Handle cover photo upload
             if (req.files.coverPhoto && req.files.coverPhoto.length > 0) {
-                // Create a URL path for the cover photo that can be used in frontend
-                coverPhotoPath = `/Uploads/profiles/${req.files.coverPhoto[0].filename}`;
+                // Delete old cover photo if it exists
+                if (user.coverPhoto) {
+                    await deleteFromCloudinary(user.coverPhoto);
+                }
+                coverPhotoPath = req.files.coverPhoto[0].path;
                 console.log("Cover photo updated:", coverPhotoPath);
             }
         }

@@ -112,6 +112,12 @@ const PostCard = ({ post, activeTab }) => {
 			return { previousPosts, previousBookmarks };
 		},
 		onError: (err, variables, context) => {
+			console.error("Like/Unlike error:", {
+				status: err.response?.status,
+				message: err.message,
+				data: err.response?.data,
+				url: err.config?.url,
+			});
 			if (context?.previousPosts) {
 				queryClient.setQueryData(["posts"], context.previousPosts);
 			}
@@ -151,6 +157,12 @@ const PostCard = ({ post, activeTab }) => {
 			return { previousPosts };
 		},
 		onError: (err, variables, context) => {
+			console.error("Bookmark error:", {
+				status: err.response?.status,
+				message: err.message,
+				data: err.response?.data,
+				url: err.config?.url,
+			});
 			if (context?.previousPosts) {
 				queryClient.setQueryData(["posts"], context.previousPosts);
 			}
@@ -177,6 +189,12 @@ const PostCard = ({ post, activeTab }) => {
 			toast.success("Comment added");
 		},
 		onError: (error) => {
+			console.error("Comment error:", {
+				status: error.response?.status,
+				message: error.message,
+				data: error.response?.data,
+				url: error.config?.url,
+			});
 			toast.error(error.response?.data?.message || "Failed to add comment");
 		},
 	});
@@ -192,6 +210,12 @@ const PostCard = ({ post, activeTab }) => {
 			queryClient.invalidateQueries({ queryKey: bookmarksKey });
 		},
 		onError: (error) => {
+			console.error("Delete post error:", {
+				status: error.response?.status,
+				message: error.message,
+				data: error.response?.data,
+				url: error.config?.url,
+			});
 			toast.error(error.response?.data?.message || "Failed to delete post");
 		},
 	});
@@ -213,19 +237,19 @@ const PostCard = ({ post, activeTab }) => {
 	return (
 		<div className='bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden'>
 			{/* Post Header */}
-			<div className='p-4 flex items-center justify-between'>
-				<div className='flex items-center space-x-3'>
+			<div className='p-3 sm:p-4 flex items-center justify-between'>
+				<div className='flex items-center space-x-2 sm:space-x-3'>
 					<Link to={`/profile/${post.user._id}`}>
 						<ProfilePhoto
 							src={post.user.profilePhoto}
 							alt={post.user.username}
-							className='w-10 h-10 rounded-full'
+							className='w-8 h-8 sm:w-10 sm:h-10 rounded-full'
 						/>
 					</Link>
 					<div>
 						<Link
 							to={`/profile/${post.user._id}`}
-							className='font-medium text-gray-900 dark:text-white hover:underline'>
+							className='font-medium text-gray-900 dark:text-white hover:underline text-sm sm:text-base'>
 							{post.user.username}
 						</Link>
 						<p className='text-xs text-gray-500 dark:text-gray-400'>
@@ -262,8 +286,8 @@ const PostCard = ({ post, activeTab }) => {
 			</div>
 
 			{/* Post Content */}
-			<div className='px-4 pb-3'>
-				<p className='text-gray-800 dark:text-gray-200 whitespace-pre-line'>
+			<div className='px-3 sm:px-4 pb-3'>
+				<p className='text-gray-800 dark:text-gray-200 whitespace-pre-line text-sm sm:text-base'>
 					{post.content}
 				</p>
 
@@ -273,7 +297,7 @@ const PostCard = ({ post, activeTab }) => {
 						{post.hashtags.map((tag, index) => (
 							<span
 								key={index}
-								className='text-blue-600 dark:text-blue-400 text-sm hover:underline'>
+								className='text-blue-600 dark:text-blue-400 text-xs sm:text-sm hover:underline'>
 								#{tag}
 							</span>
 						))}
@@ -293,16 +317,24 @@ const PostCard = ({ post, activeTab }) => {
 						return isImage ? (
 							<img
 								key={index}
-								src={`http://localhost:5500${mediaUrl}`}
+								src={
+									mediaUrl.startsWith("http")
+										? mediaUrl
+										: `http://localhost:5500${mediaUrl}`
+								}
 								alt='Post media'
-								className='w-full h-64 object-cover'
+								className='w-full h-48 sm:h-64 object-cover'
 							/>
 						) : (
 							<video
 								key={index}
-								src={`http://localhost:5500${mediaUrl}`}
+								src={
+									mediaUrl.startsWith("http")
+										? mediaUrl
+										: `http://localhost:5500${mediaUrl}`
+								}
 								controls
-								className='w-full h-64 object-cover'
+								className='w-full h-48 sm:h-64 object-cover'
 							/>
 						);
 					})}
@@ -310,7 +342,7 @@ const PostCard = ({ post, activeTab }) => {
 			)}
 
 			{/* Post Stats */}
-			<div className='px-4 py-2 border-t border-gray-200 dark:border-gray-700 flex justify-between text-sm text-gray-500 dark:text-gray-400'>
+			<div className='px-3 sm:px-4 py-2 border-t border-gray-200 dark:border-gray-700 flex justify-between text-xs sm:text-sm text-gray-500 dark:text-gray-400'>
 				<span>{post.likes.length} likes</span>
 				<span
 					onClick={() => setShowComments(!showComments)}
@@ -320,10 +352,10 @@ const PostCard = ({ post, activeTab }) => {
 			</div>
 
 			{/* Post Actions */}
-			<div className='px-4 py-2 border-t border-gray-200 dark:border-gray-700 flex justify-around'>
+			<div className='px-3 sm:px-4 py-2 border-t border-gray-200 dark:border-gray-700 flex justify-around'>
 				<button
 					onClick={handleLike}
-					className={`flex items-center space-x-1 ${
+					className={`flex items-center space-x-1 text-sm ${
 						isLiked ? "text-red-500" : "text-gray-500 dark:text-gray-400"
 					} hover:text-red-500`}>
 					<FiHeart className={isLiked ? "fill-current" : ""} />
@@ -331,17 +363,17 @@ const PostCard = ({ post, activeTab }) => {
 				</button>
 				<button
 					onClick={() => setShowComments(!showComments)}
-					className='flex items-center space-x-1 text-gray-500 dark:text-gray-400 hover:text-blue-500'>
+					className='flex items-center space-x-1 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-500'>
 					<FiMessageSquare />
 					<span>Comment</span>
 				</button>
-				<button className='flex items-center space-x-1 text-gray-500 dark:text-gray-400 hover:text-green-500'>
+				<button className='flex items-center space-x-1 text-sm text-gray-500 dark:text-gray-400 hover:text-green-500'>
 					<FiShare2 />
 					<span>Share</span>
 				</button>
 				<button
 					onClick={handleBookmark}
-					className={`flex items-center space-x-1 ${
+					className={`flex items-center space-x-1 text-sm ${
 						isBookmarked
 							? "text-yellow-500"
 							: "text-gray-500 dark:text-gray-400"
@@ -353,7 +385,7 @@ const PostCard = ({ post, activeTab }) => {
 
 			{/* Comments Section */}
 			{showComments && (
-				<div className='p-4 border-t border-gray-200 dark:border-gray-700'>
+				<div className='p-3 sm:p-4 border-t border-gray-200 dark:border-gray-700'>
 					{/* Add Comment Form */}
 					<form onSubmit={handleComment} className='flex space-x-2 mb-4'>
 						<input
@@ -361,12 +393,12 @@ const PostCard = ({ post, activeTab }) => {
 							value={comment}
 							onChange={(e) => setComment(e.target.value)}
 							placeholder='Write a comment...'
-							className='flex-1 border border-gray-300 dark:border-gray-600 rounded-full px-4 py-1 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white'
+							className='flex-1 border border-gray-300 dark:border-gray-600 rounded-full px-3 sm:px-4 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white'
 						/>
 						<button
 							type='submit'
 							disabled={!comment.trim() || commentMutation.isPending}
-							className='px-4 py-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'>
+							className='px-3 sm:px-4 py-1.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm'>
 							{commentMutation.isPending ? "Sending..." : "Send"}
 						</button>
 					</form>
@@ -376,23 +408,19 @@ const PostCard = ({ post, activeTab }) => {
 						{post.comments && post.comments.length > 0 ? (
 							post.comments.map((comment) => (
 								<div key={comment._id} className='flex space-x-2'>
-									<img
-										src={
-											comment.user.profilePhoto
-												? `http://localhost:5500${comment.user.profilePhoto}`
-												: userImage
-										}
+									<ProfilePhoto
+										src={comment.user.profilePhoto}
 										alt={comment.user.username}
-										className='w-8 h-8 rounded-full object-cover'
+										className='w-6 h-6 sm:w-8 sm:h-8 rounded-full'
 									/>
 									<div className='flex-1'>
 										<div className='bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2'>
 											<Link
 												to={`/profile/${comment.user._id}`}
-												className='font-medium text-gray-900 dark:text-white hover:underline'>
+												className='font-medium text-gray-900 dark:text-white hover:underline text-sm'>
 												{comment.user.username}
 											</Link>
-											<p className='text-gray-800 dark:text-gray-200'>
+											<p className='text-gray-800 dark:text-gray-200 text-sm'>
 												{comment.content}
 											</p>
 										</div>
@@ -405,7 +433,7 @@ const PostCard = ({ post, activeTab }) => {
 								</div>
 							))
 						) : (
-							<p className='text-center text-gray-500 dark:text-gray-400'>
+							<p className='text-center text-gray-500 dark:text-gray-400 text-sm'>
 								No comments yet. Be the first to comment!
 							</p>
 						)}
@@ -415,24 +443,24 @@ const PostCard = ({ post, activeTab }) => {
 
 			{/* Delete Confirmation Modal */}
 			{showDeleteDialog && (
-				<div className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40'>
-					<div className='bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-xs'>
+				<div className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4'>
+					<div className='bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sm:p-6 w-full max-w-xs'>
 						<h2 className='text-lg font-semibold mb-4 text-gray-900 dark:text-white'>
 							Delete Post
 						</h2>
-						<p className='mb-6 text-gray-700 dark:text-gray-300'>
+						<p className='mb-6 text-gray-700 dark:text-gray-300 text-sm'>
 							Are you sure you want to delete this post? This action cannot be
 							undone.
 						</p>
 						<div className='flex justify-end gap-2'>
 							<button
-								className='px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600'
+								className='px-3 sm:px-4 py-1.5 sm:py-2 rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 text-sm'
 								onClick={() => setShowDeleteDialog(false)}
 								disabled={deletePostMutation.isPending}>
 								Cancel
 							</button>
 							<button
-								className='px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50'
+								className='px-3 sm:px-4 py-1.5 sm:py-2 rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 text-sm'
 								onClick={() => {
 									deletePostMutation.mutate();
 									setShowDeleteDialog(false);

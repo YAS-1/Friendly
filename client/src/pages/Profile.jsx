@@ -186,7 +186,11 @@ const Profile = () => {
 					<>
 						{console.log("Cover photo path:", profile.coverPhoto)}
 						<img
-							src={`http://localhost:5500${profile.coverPhoto}`}
+							src={
+								profile.coverPhoto.startsWith("http")
+									? profile.coverPhoto
+									: `http://localhost:5500${profile.coverPhoto}`
+							}
 							alt='Cover'
 							className='w-full h-full object-cover'
 							onError={(e) => {
@@ -332,14 +336,23 @@ const Profile = () => {
 												className='aspect-square overflow-hidden rounded-lg'>
 												{isImage ? (
 													<img
-														src={`http://localhost:5500${mediaUrl}`}
+														src={
+															mediaUrl.startsWith("http")
+																? mediaUrl
+																: `${axios.defaults.baseURL}${mediaUrl}`
+														}
 														alt='Media'
 														className='w-full h-full object-cover'
 													/>
 												) : (
 													<video
-														src={`http://localhost:5500${mediaUrl}`}
+														src={
+															mediaUrl.startsWith("http")
+																? mediaUrl
+																: `${axios.defaults.baseURL}${mediaUrl}`
+														}
 														className='w-full h-full object-cover'
+														controls
 													/>
 												)}
 											</div>
@@ -363,14 +376,23 @@ const Profile = () => {
 													className='aspect-square overflow-hidden rounded-lg'>
 													{isImage ? (
 														<img
-															src={`http://localhost:5500${mediaUrl}`}
+															src={
+																mediaUrl.startsWith("http")
+																	? mediaUrl
+																	: `${axios.defaults.baseURL}${mediaUrl}`
+															}
 															alt='Media'
 															className='w-full h-full object-cover'
 														/>
 													) : (
 														<video
-															src={`http://localhost:5500${mediaUrl}`}
+															src={
+																mediaUrl.startsWith("http")
+																	? mediaUrl
+																	: `${axios.defaults.baseURL}${mediaUrl}`
+															}
 															className='w-full h-full object-cover'
+															controls
 														/>
 													)}
 												</div>

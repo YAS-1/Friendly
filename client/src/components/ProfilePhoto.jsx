@@ -28,7 +28,7 @@ const ProfilePhoto = ({
 	const formatImageUrl = (url) => {
 		if (!url) return defaultUserImage;
 
-		// If the URL is already a complete URL, return it as is
+		// If the URL is already a complete URL (Cloudinary or other), return it as is
 		if (url.startsWith("http://") || url.startsWith("https://")) {
 			return url;
 		}

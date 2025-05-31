@@ -36,11 +36,23 @@ export const AuthProvider = ({ children }) => {
 				const { data } = await axios.get("/auth/myProfile");
 				setUser(data.user);
 			} catch (error) {
+				console.error("Auth check error:", {
+					status: error.response?.status,
+					message: error.message,
+					data: error.response?.data,
+					url: error.config?.url,
+				});
+
 				if (error.response?.status === 401) {
 					// Not authenticated, expected on public pages
 					setUser(null);
+				} else if (error.response?.status === 404) {
+					console.error(
+						"Server endpoint not found. Please check if the server is running and the API routes are correct."
+					);
+					setUser(null);
 				} else {
-					console.error("Not authenticated", error);
+					console.error("Authentication error:", error);
 					setUser(null);
 				}
 			} finally {
@@ -54,14 +66,30 @@ export const AuthProvider = ({ children }) => {
 	const login = async (email, password) => {
 		try {
 			setLoading(true);
+			console.log(
+				"Attempting login to:",
+				axios.defaults.baseURL + "/auth/login"
+			);
 			const { data } = await axios.post("/auth/login", { email, password });
 			setUser(data.user);
 			toast.success("Login successful!");
 			navigate("/");
 			return true;
 		} catch (error) {
-			console.error("Login failed", error);
-			toast.error(error.response?.data?.message || "Login failed");
+			console.error("Login error:", {
+				status: error.response?.status,
+				message: error.message,
+				data: error.response?.data,
+				url: error.config?.url,
+			});
+
+			if (error.response?.status === 404) {
+				toast.error(
+					"Server endpoint not found. Please check if the server is running."
+				);
+			} else {
+				toast.error(error.response?.data?.message || "Login failed");
+			}
 			return false;
 		} finally {
 			setLoading(false);

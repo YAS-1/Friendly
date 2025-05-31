@@ -1,4 +1,3 @@
-
 import mongoose from "mongoose";
 
 const Schema = mongoose.Schema;
@@ -8,31 +7,33 @@ const postSchema = new mongoose.Schema({
         type: Schema.Types.ObjectId,
         ref: 'User',
         required: true,
-      },
-      content: {
+    },
+    content: {
         type: String,
-        required: true,
+        required: function() {
+            return !this.media || this.media.length === 0;
+        },
         maxlength: 1000, // Text content of the post
-      },
-      media: [{
+    },
+    media: [{
         type: String, // URLs to images/videos
-        default: '',
-      }],
-      hashtags: [{
+        default: [],
+    }],
+    hashtags: [{
         type: String, // Extracted hashtags (e.g., '#FriendlyApp')
-      }],
-      likes: [{
+    }],
+    likes: [{
         type: Schema.Types.ObjectId,
         ref: 'User', // Users who liked the post
-      }],
-      bookmarks: [{
+    }],
+    bookmarks: [{
         type: Schema.Types.ObjectId,
         ref: 'User', // Users who bookmarked the post
-      }],
-      createdAt: {
+    }],
+    createdAt: {
         type: Date,
         default: Date.now,
-      },
+    },
 });
 
 const Post = mongoose.model('Post', postSchema);

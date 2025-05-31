@@ -2,12 +2,22 @@ import Post from '../models/post.model.js';
 import Bookmark from '../models/bookmark.model.js';
 import Notification from '../models/notification.model.js';
 import Comment from '../models/comment.model.js';
+import { deleteMultipleFromCloudinary } from '../utils/cloudinaryUtils.js';
 
 // Create a new post
 export const createPost = async (req, res) => {
     try {
         const { content, hashtags } = req.body;
-        const media = req.files ? req.files.map(file => `/Uploads/posts/${file.filename}`) : [];
+        const media = req.files ? req.files.map(file => file.path) : [];
+
+        // Log the incoming request data
+        console.log('Creating post with data:', {
+            content,
+            hashtags,
+            mediaCount: media.length,
+            mediaTypes: req.files ? req.files.map(f => f.mimetype) : [],
+            mediaPaths: media
+        });
 
         const post = new Post({
             user: req.user._id,
@@ -21,12 +31,45 @@ export const createPost = async (req, res) => {
         // Populate user details
         await post.populate('user', 'username profilePhoto');
         
+        console.log('Post created successfully:', post._id);
+        
         res.status(201).json({
             success: true,
             message: 'Post created successfully',
             post
         });
     } catch (error) {
+        console.error('Error creating post:', {
+            error: error.message,
+            stack: error.stack,
+            body: req.body,
+            files: req.files ? req.files.map(f => ({
+                originalname: f.originalname,
+                mimetype: f.mimetype,
+                size: f.size,
+                path: f.path
+            })) : [],
+            user: req.user ? {
+                id: req.user._id,
+                username: req.user.username
+            } : null
+        });
+
+        // Handle specific error types
+        if (error.message.includes('File too large')) {
+            return res.status(400).json({
+                success: false,
+                message: 'File size exceeds the 25MB limit'
+            });
+        }
+
+        if (error.message.includes('Invalid file type')) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid file type. Only images (JPEG, PNG, GIF) and videos (MP4, MPEG, QuickTime) are allowed.'
+            });
+        }
+
         res.status(500).json({
             success: false,
             message: 'Error creating post',
@@ -148,7 +191,7 @@ export const updatePost = async (req, res) => {
 
         // Handle new media files if any
         if (req.files && req.files.length > 0) {
-            const newMedia = req.files.map(file => `/Uploads/posts/${file.filename}`);
+            const newMedia = req.files.map(file => file.path);
             post.media = [...post.media, ...newMedia];
         }
 
@@ -189,7 +232,12 @@ export const deletePost = async (req, res) => {
             });
         }
 
-        // await post.remove();
+        // Delete media files from Cloudinary
+        if (post.media && post.media.length > 0) {
+            await deleteMultipleFromCloudinary(post.media);
+        }
+
+        // Delete the post
         await post.deleteOne();
 
         res.status(200).json({

@@ -18,7 +18,11 @@ const Notifications = () => {
 	const queryClient = useQueryClient();
 
 	// Fetch notifications
-	const { data: notifications, isLoading } = useQuery({
+	const {
+		data: notifications,
+		isLoading,
+		error,
+	} = useQuery({
 		queryKey: ["notifications"],
 		queryFn: async () => {
 			const response = await axios.get("/notifications");
@@ -92,145 +96,116 @@ const Notifications = () => {
 		switch (notification.type) {
 			case "like":
 			case "comment":
-				return `/post/${notification.post._id}`;
+				// Only return post link if post exists and has an ID
+				if (notification.post?._id) {
+					return `/post/${notification.post._id}`;
+				}
+				return null;
 			case "follow":
 				return `/profile/${notification.sender._id}`;
 			case "message":
 				return `/messages/${notification.sender._id}`;
 			default:
-				return "#";
+				return null;
 		}
 	};
 
 	return (
-		<div className='max-w-2xl mx-auto p-4'>
-			<div className='flex justify-between items-center mb-6'>
-				<h1 className='text-2xl font-bold dark:text-white'>Notifications</h1>
-				<div className='flex gap-2'>
-					<button
-						onClick={() => markAllAsReadMutation.mutate()}
-						className='px-3 py-1 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center gap-1'
-						disabled={markAllAsReadMutation.isPending}>
-						<FiCheck size={16} />
-						Mark all as read
-					</button>
-					<button
-						onClick={() => deleteAllMutation.mutate()}
-						className='px-3 py-1 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center gap-1'
-						disabled={deleteAllMutation.isPending}>
-						<FiTrash2 size={16} />
-						Clear all
-					</button>
+		<div className='max-w-4xl mx-auto p-2 sm:p-4'>
+			<div className='bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden'>
+				{/* Notifications Header */}
+				<div className='p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700'>
+					<h1 className='text-xl font-semibold text-gray-900 dark:text-white'>
+						Notifications
+					</h1>
 				</div>
-			</div>
 
-			{/* Tabs */}
-			<div className='flex border-b dark:border-gray-700 mb-6'>
-				<button
-					className={`px-4 py-2 ${
-						activeTab === "all"
-							? "border-b-2 border-blue-500 text-blue-600 dark:text-blue-400"
-							: "text-gray-600 dark:text-gray-400"
-					}`}
-					onClick={() => setActiveTab("all")}>
-					All
-				</button>
-				<button
-					className={`px-4 py-2 ${
-						activeTab === "like"
-							? "border-b-2 border-blue-500 text-blue-600 dark:text-blue-400"
-							: "text-gray-600 dark:text-gray-400"
-					}`}
-					onClick={() => setActiveTab("like")}>
-					Likes
-				</button>
-				<button
-					className={`px-4 py-2 ${
-						activeTab === "comment"
-							? "border-b-2 border-blue-500 text-blue-600 dark:text-blue-400"
-							: "text-gray-600 dark:text-gray-400"
-					}`}
-					onClick={() => setActiveTab("comment")}>
-					Comments
-				</button>
-				<button
-					className={`px-4 py-2 ${
-						activeTab === "follow"
-							? "border-b-2 border-blue-500 text-blue-600 dark:text-blue-400"
-							: "text-gray-600 dark:text-gray-400"
-					}`}
-					onClick={() => setActiveTab("follow")}>
-					Follows
-				</button>
-				<button
-					className={`px-4 py-2 ${
-						activeTab === "message"
-							? "border-b-2 border-blue-500 text-blue-600 dark:text-blue-400"
-							: "text-gray-600 dark:text-gray-400"
-					}`}
-					onClick={() => setActiveTab("message")}>
-					Messages
-				</button>
-			</div>
-
-			{/* Notifications list */}
-			{isLoading ? (
-				<div className='flex justify-center py-8'>
-					<div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500'></div>
-				</div>
-			) : filteredNotifications?.length === 0 ? (
-				<div className='text-center py-8 text-gray-500 dark:text-gray-400'>
-					No notifications yet
-				</div>
-			) : (
-				<div className='space-y-4'>
-					{filteredNotifications?.map((notification) => (
-						<Link
-							key={notification._id}
-							to={getNotificationLink(notification)}
-							className={`block p-4 rounded-lg transition-colors ${
-								notification.read
-									? "bg-white dark:bg-gray-800"
-									: "bg-blue-50 dark:bg-blue-900/20"
-							}`}>
-							<div className='flex items-start gap-4'>
-								<div className='flex-shrink-0'>
-									{notification.sender.profilePhoto ? (
-										<img
-											src={`http://localhost:5500${notification.sender.profilePhoto}`}
-											alt={notification.sender.username}
-											className='w-12 h-12 rounded-full object-cover'
-										/>
-									) : (
-										<div className='w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center'>
-											<span className='text-xl font-semibold text-gray-500 dark:text-gray-400'>
-												{notification.sender.username[0].toUpperCase()}
+				{/* Notifications List */}
+				<div className='divide-y divide-gray-200 dark:divide-gray-700'>
+					{isLoading ? (
+						<div className='flex justify-center py-8'>
+							<div className='animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500'></div>
+						</div>
+					) : error ? (
+						<div className='p-4 text-center text-red-500 dark:text-red-400'>
+							Failed to load notifications
+						</div>
+					) : notifications?.length === 0 ? (
+						<div className='p-8 text-center text-gray-500 dark:text-gray-400'>
+							No notifications yet
+						</div>
+					) : (
+						notifications?.map((notification) => (
+							<div
+								key={notification._id}
+								className={`p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-gray-700 ${
+									!notification.read ? "bg-blue-50 dark:bg-blue-900/20" : ""
+								}`}>
+								<div className='flex items-start space-x-3'>
+									<Link
+										to={`/profile/${notification.sender._id}`}
+										className='flex-shrink-0'>
+										{notification.sender.profilePhoto ? (
+											<img
+												src={
+													notification.sender.profilePhoto.startsWith("http")
+														? notification.sender.profilePhoto
+														: `http://localhost:5500${notification.sender.profilePhoto}`
+												}
+												alt={notification.sender.username}
+												className='w-10 h-10 rounded-full object-cover'
+											/>
+										) : (
+											<div className='w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center'>
+												<span className='text-xl font-semibold text-gray-500 dark:text-gray-400'>
+													{notification.sender.username[0].toUpperCase()}
+												</span>
+											</div>
+										)}
+									</Link>
+									<div className='flex-1 min-w-0'>
+										<div className='flex items-center justify-between'>
+											<div className='flex items-center space-x-1'>
+												<Link
+													to={`/profile/${notification.sender._id}`}
+													className='font-medium text-gray-900 dark:text-white hover:underline text-sm sm:text-base'>
+													{notification.sender.username}
+												</Link>
+												<span className='text-gray-600 dark:text-gray-400 text-sm sm:text-base'>
+													{getNotificationMessage(notification)}
+												</span>
+												{notification.type === "like" ||
+												notification.type === "comment" ? (
+													getNotificationLink(notification) ? (
+														<Link
+															to={getNotificationLink(notification)}
+															className='text-blue-600 dark:text-blue-400 hover:underline text-sm sm:text-base'>
+															your post
+														</Link>
+													) : (
+														<span className='text-gray-500 dark:text-gray-400 text-sm sm:text-base'>
+															(post has been deleted)
+														</span>
+													)
+												) : null}
+											</div>
+											<span className='text-xs text-gray-500 dark:text-gray-400'>
+												{new Date(notification.createdAt).toLocaleDateString()}
 											</span>
 										</div>
-									)}
-								</div>
-								<div className='flex-1'>
-									<div className='flex items-center gap-2'>
-										{getNotificationIcon(notification.type)}
-										<p className='text-gray-800 dark:text-gray-200'>
-											{getNotificationMessage(notification)}
-										</p>
+										{notification.type === "comment" && notification.post && (
+											<p className='mt-1 text-sm text-gray-600 dark:text-gray-400'>
+												{notification.post.content.substring(0, 100)}
+												{notification.post.content.length > 100 ? "..." : ""}
+											</p>
+										)}
 									</div>
-									{notification.type === "comment" && notification.post && (
-										<p className='mt-1 text-sm text-gray-500 dark:text-gray-400'>
-											{notification.post.content.substring(0, 100)}
-											{notification.post.content.length > 100 ? "..." : ""}
-										</p>
-									)}
-									<span className='text-xs text-gray-500 dark:text-gray-400 mt-1 block'>
-										{new Date(notification.createdAt).toLocaleDateString()}
-									</span>
 								</div>
 							</div>
-						</Link>
-					))}
+						))
+					)}
 				</div>
-			)}
+			</div>
 		</div>
 	);
 };

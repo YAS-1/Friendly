@@ -3,6 +3,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { FiUser, FiUserPlus } from "react-icons/fi";
 import toast from "react-hot-toast";
+import ProfilePhoto from "./ProfilePhoto";
 
 const SuggestedUsers = () => {
 	const queryClient = useQueryClient();
@@ -63,20 +64,11 @@ const SuggestedUsers = () => {
 						<Link
 							to={`/profile/${user._id}`}
 							className='flex items-center space-x-3'>
-							{user.profilePhoto ? (
-								<img
-									src={`http://localhost:5500${user.profilePhoto}`}
-									alt={user.username}
-									className='w-12 h-12 rounded-full object-cover'
-								/>
-							) : (
-								<div className='w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center'>
-									<FiUser
-										size={24}
-										className='text-gray-500 dark:text-gray-400'
-									/>
-								</div>
-							)}
+							<ProfilePhoto
+								src={user.profilePhoto}
+								alt={user.username}
+								className='w-12 h-12 rounded-full'
+							/>
 							<div>
 								<h3 className='font-medium dark:text-white'>{user.username}</h3>
 								<p className='text-sm text-gray-500 dark:text-gray-400'>

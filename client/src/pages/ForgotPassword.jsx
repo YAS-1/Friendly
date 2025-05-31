@@ -10,8 +10,18 @@ const ForgotPassword = () => {
 
 	const requestResetMutation = useMutation({
 		mutationFn: async () => {
-			const response = await axios.post("/password-reset/request", { email });
-			return response.data;
+			try {
+				const response = await axios.post("/password-reset/request", { email });
+				return response.data;
+			} catch (error) {
+				console.error("Error requesting password reset:", {
+					status: error.response?.status,
+					message: error.message,
+					data: error.response?.data,
+					url: error.config?.url,
+				});
+				throw error;
+			}
 		},
 		onSuccess: (data) => {
 			toast.success("Reset code sent to your email");

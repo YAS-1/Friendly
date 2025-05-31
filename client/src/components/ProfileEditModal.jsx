@@ -9,10 +9,18 @@ const ProfileEditModal = ({ profile, onClose, onSave }) => {
 	const [profilePhoto, setProfilePhoto] = useState(null);
 	const [coverPhoto, setCoverPhoto] = useState(null);
 	const [profilePhotoPreview, setProfilePhotoPreview] = useState(
-		profile?.profilePhoto ? `http://localhost:5500${profile.profilePhoto}` : ""
+		profile?.profilePhoto
+			? profile.profilePhoto.startsWith("http")
+				? profile.profilePhoto
+				: `http://localhost:5500${profile.profilePhoto}`
+			: ""
 	);
 	const [coverPhotoPreview, setCoverPhotoPreview] = useState(
-		profile?.coverPhoto ? `http://localhost:5500${profile.coverPhoto}` : ""
+		profile?.coverPhoto
+			? profile.coverPhoto.startsWith("http")
+				? profile.coverPhoto
+				: `http://localhost:5500${profile.coverPhoto}`
+			: ""
 	);
 	const [errors, setErrors] = useState({});
 
