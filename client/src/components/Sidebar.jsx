@@ -85,6 +85,12 @@ const Sidebar = () => {
 					</div>
 				</div>
 			</div>
+
+			{/* Copyright */}
+			<div className='mt-auto text-center text-xs text-gray-400 dark:text-gray-600'>
+				© {new Date().getFullYear()} Friendly by Yawe Arthur Shalom. All rights
+				reserved.
+			</div>
 		</div>
 	);
 };
