@@ -403,11 +403,11 @@ const Messages = () => {
 														: "justify-start"
 												}`}>
 												<div
-													className={`max-w-[70%] rounded-2xl p-3 ${
+													className={`max-w-[70%] p-3 rounded-lg ${
 														message.sender === user._id
-															? "bg-blue-600 text-white rounded-tr-none"
-															: "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-tl-none"
-													} shadow-sm`}>
+															? "bg-[#0084ff] text-white ml-4"
+															: "bg-[#e9ecef] text-black mr-4"
+													}`}>
 													<p className='text-sm sm:text-base'>
 														{message.content}
 													</p>
@@ -415,7 +415,7 @@ const Messages = () => {
 														className={`text-xs mt-1 ${
 															message.sender === user._id
 																? "text-blue-100"
-																: "text-gray-500 dark:text-gray-400"
+																: "text-gray-500"
 														}`}>
 														{formatMessageDate(message.createdAt)}
 													</p>
