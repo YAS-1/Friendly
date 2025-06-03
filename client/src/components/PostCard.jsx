@@ -298,7 +298,7 @@ const PostCard = ({ post, activeTab }) => {
 							<span
 								key={index}
 								className='text-blue-600 dark:text-blue-400 text-xs sm:text-sm hover:underline'>
-								#{tag}
+								{tag}
 							</span>
 						))}
 					</div>
