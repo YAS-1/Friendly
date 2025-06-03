@@ -377,14 +377,11 @@ const Messages = () => {
 										<p className='font-medium text-gray-900 dark:text-white'>
 											{chatUser?.username}
 										</p>
-										<p className='text-sm text-gray-500 dark:text-gray-400'>
-											{chatUser?.isOnline ? "Online" : "Offline"}
-										</p>
 									</div>
 								</div>
 
 								{/* Messages List */}
-								<div className='flex-1 overflow-y-auto p-3 sm:p-4 space-y-4'>
+								<div className='flex-1 overflow-y-auto p-4'>
 									{messagesLoading ? (
 										<div className='flex justify-center py-4'>
 											<div className='animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500'></div>
@@ -394,34 +391,36 @@ const Messages = () => {
 											No messages yet. Start the conversation!
 										</div>
 									) : (
-										messages?.map((message) => (
-											<div
-												key={message._id}
-												className={`flex ${
-													message.sender === user._id
-														? "justify-end"
-														: "justify-start"
-												}`}>
+										<div className='space-y-4'>
+											{messages?.map((message) => (
 												<div
-													className={`max-w-[70%] p-3 rounded-lg ${
+													key={message._id}
+													className={`flex w-full ${
 														message.sender === user._id
-															? "bg-[#0084ff] text-white ml-4"
-															: "bg-[#e9ecef] text-black mr-4"
+															? "justify-end"
+															: "justify-start"
 													}`}>
-													<p className='text-sm sm:text-base'>
-														{message.content}
-													</p>
-													<p
-														className={`text-xs mt-1 ${
+													<div
+														className={`max-w-[70%] p-3 rounded-2xl ${
 															message.sender === user._id
-																? "text-blue-100"
-																: "text-gray-500"
+																? "bg-[#0084ff] text-white rounded-tr-none"
+																: "bg-[#e9ecef] text-black rounded-tl-none"
 														}`}>
-														{formatMessageDate(message.createdAt)}
-													</p>
+														<div className='text-sm sm:text-base'>
+															{message.content}
+														</div>
+														<div
+															className={`text-xs mt-1 ${
+																message.sender === user._id
+																	? "text-blue-100"
+																	: "text-gray-500"
+															}`}>
+															{formatMessageDate(message.createdAt)}
+														</div>
+													</div>
 												</div>
-											</div>
-										))
+											))}
+										</div>
 									)}
 								</div>
 
