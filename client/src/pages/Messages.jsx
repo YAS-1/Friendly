@@ -400,6 +400,8 @@ const Messages = () => {
 															messages[index - 1].createdAt
 														).toDateString();
 
+												const isOwnMessage = message.sender._id === user._id;
+
 												return (
 													<>
 														{showDate && (
@@ -419,13 +421,11 @@ const Messages = () => {
 														<div
 															key={message._id}
 															className={`flex w-full ${
-																message.sender === user._id
-																	? "justify-end"
-																	: "justify-start"
+																isOwnMessage ? "justify-end" : "justify-start"
 															}`}>
 															<div
 																className={`max-w-[70%] p-3 rounded-2xl shadow-sm ${
-																	message.sender === user._id
+																	isOwnMessage
 																		? "bg-[#dcf8c6] text-black rounded-tr-none"
 																		: "bg-white dark:bg-gray-800 text-black dark:text-white rounded-tl-none"
 																}`}>
@@ -434,7 +434,7 @@ const Messages = () => {
 																</div>
 																<div
 																	className={`text-xs mt-1 ${
-																		message.sender === user._id
+																		isOwnMessage
 																			? "text-gray-500"
 																			: "text-gray-500 dark:text-gray-400"
 																	}`}>
