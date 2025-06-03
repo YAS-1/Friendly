@@ -403,15 +403,20 @@ const Messages = () => {
 														: "justify-start"
 												}`}>
 												<div
-													className={`max-w-[70%] rounded-lg p-3 ${
+													className={`max-w-[70%] rounded-2xl p-3 ${
 														message.sender === user._id
-															? "bg-blue-600 text-white"
-															: "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-													}`}>
+															? "bg-blue-600 text-white rounded-tr-none"
+															: "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-tl-none"
+													} shadow-sm`}>
 													<p className='text-sm sm:text-base'>
 														{message.content}
 													</p>
-													<p className='text-xs mt-1 opacity-75'>
+													<p
+														className={`text-xs mt-1 ${
+															message.sender === user._id
+																? "text-blue-100"
+																: "text-gray-500 dark:text-gray-400"
+														}`}>
 														{formatMessageDate(message.createdAt)}
 													</p>
 												</div>
