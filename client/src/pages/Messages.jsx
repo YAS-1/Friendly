@@ -381,7 +381,7 @@ const Messages = () => {
 								</div>
 
 								{/* Messages List */}
-								<div className='flex-1 overflow-y-auto p-4'>
+								<div className='flex-1 overflow-y-auto p-4 bg-[#efeae2] dark:bg-gray-900'>
 									{messagesLoading ? (
 										<div className='flex justify-center py-4'>
 											<div className='animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500'></div>
@@ -391,41 +391,67 @@ const Messages = () => {
 											No messages yet. Start the conversation!
 										</div>
 									) : (
-										<div className='space-y-4'>
-											{messages?.map((message) => (
-												<div
-													key={message._id}
-													className={`flex w-full ${
-														message.sender === user._id
-															? "justify-end"
-															: "justify-start"
-													}`}>
-													<div
-														className={`max-w-[70%] p-3 rounded-2xl ${
-															message.sender === user._id
-																? "bg-[#0084ff] text-white rounded-tr-none"
-																: "bg-[#e9ecef] text-black rounded-tl-none"
-														}`}>
-														<div className='text-sm sm:text-base'>
-															{message.content}
-														</div>
+										<div className='space-y-2'>
+											{messages?.map((message, index) => {
+												const showDate =
+													index === 0 ||
+													new Date(message.createdAt).toDateString() !==
+														new Date(
+															messages[index - 1].createdAt
+														).toDateString();
+
+												return (
+													<>
+														{showDate && (
+															<div className='flex justify-center my-4'>
+																<span className='bg-white dark:bg-gray-800 px-3 py-1 rounded-full text-xs text-gray-500 dark:text-gray-400 shadow-sm'>
+																	{new Date(
+																		message.createdAt
+																	).toLocaleDateString(undefined, {
+																		weekday: "long",
+																		year: "numeric",
+																		month: "long",
+																		day: "numeric",
+																	})}
+																</span>
+															</div>
+														)}
 														<div
-															className={`text-xs mt-1 ${
+															key={message._id}
+															className={`flex w-full ${
 																message.sender === user._id
-																	? "text-blue-100"
-																	: "text-gray-500"
+																	? "justify-end"
+																	: "justify-start"
 															}`}>
-															{formatMessageDate(message.createdAt)}
+															<div
+																className={`max-w-[70%] p-3 rounded-2xl shadow-sm ${
+																	message.sender === user._id
+																		? "bg-[#dcf8c6] text-black rounded-tr-none"
+																		: "bg-white dark:bg-gray-800 text-black dark:text-white rounded-tl-none"
+																}`}>
+																<div className='text-sm sm:text-base break-words'>
+																	{message.content}
+																</div>
+																<div
+																	className={`text-xs mt-1 ${
+																		message.sender === user._id
+																			? "text-gray-500"
+																			: "text-gray-500 dark:text-gray-400"
+																	}`}>
+																	{formatMessageDate(message.createdAt)}
+																</div>
+															</div>
 														</div>
-													</div>
-												</div>
-											))}
+													</>
+												);
+											})}
+											<div ref={messagesEndRef} />
 										</div>
 									)}
 								</div>
 
 								{/* Message Input */}
-								<div className='p-3 sm:p-4 border-t border-gray-200 dark:border-gray-700'>
+								<div className='p-3 sm:p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'>
 									<form
 										onSubmit={handleSendMessage}
 										className='flex items-center space-x-2'>
@@ -441,8 +467,12 @@ const Messages = () => {
 											disabled={
 												!message.trim() || sendMessageMutation.isPending
 											}
-											className='px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base'>
-											{sendMessageMutation.isPending ? "Sending..." : "Send"}
+											className='px-4 py-2 bg-[#00a884] text-white rounded-full hover:bg-[#008f6f] focus:outline-none focus:ring-2 focus:ring-[#00a884] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base'>
+											{sendMessageMutation.isPending ? (
+												<div className='animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white'></div>
+											) : (
+												<FiSend className='h-5 w-5' />
+											)}
 										</button>
 									</form>
 								</div>
