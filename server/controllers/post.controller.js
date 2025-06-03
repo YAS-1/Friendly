@@ -348,10 +348,13 @@ export const toggleBookmark = async (req, res) => {
 // Get user's bookmarked posts
 export const getBookmarkedPosts = async (req, res) => {
     try {
+        console.log('Fetching bookmarked posts for user:', req.user._id);
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
+        const type = req.query.type || 'all';
 
+        // Find bookmarks and populate post details
         const bookmarks = await Bookmark.find({ user: req.user._id })
             .sort({ createdAt: -1 })
             .skip(skip)
@@ -364,13 +367,27 @@ export const getBookmarkedPosts = async (req, res) => {
                 ]
             });
 
-        const total = await Bookmark.countDocuments({ user: req.user._id });
+        console.log('Found bookmarks:', bookmarks.length);
 
-        // Get the posts from bookmarks
-        const posts = bookmarks.map(bookmark => bookmark.post);
+        // Filter out any bookmarks where the post was deleted
+        const validBookmarks = bookmarks.filter(bookmark => bookmark.post !== null);
+        
+        // Get the posts from valid bookmarks
+        const posts = validBookmarks.map(bookmark => bookmark.post);
+
+        // Filter posts by type if specified
+        let filteredPosts = posts;
+        if (type === 'media') {
+            filteredPosts = posts.filter(post => post.media && post.media.length > 0);
+        } else if (type === 'posts') {
+            filteredPosts = posts.filter(post => !post.media || post.media.length === 0);
+        }
 
         // Enrich posts with comments and isBookmarked
-        const enrichedPosts = await enrichPosts(posts, req.user._id);
+        const enrichedPosts = await enrichPosts(filteredPosts, req.user._id);
+
+        // Get total count for pagination
+        const total = await Bookmark.countDocuments({ user: req.user._id });
 
         res.status(200).json({
             success: true,
@@ -380,6 +397,11 @@ export const getBookmarkedPosts = async (req, res) => {
             totalBookmarks: total
         });
     } catch (error) {
+        console.error('Error in getBookmarkedPosts:', {
+            error: error.message,
+            stack: error.stack,
+            userId: req.user?._id
+        });
         res.status(500).json({
             success: false,
             message: 'Error fetching bookmarked posts',

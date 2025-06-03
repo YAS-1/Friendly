@@ -25,16 +25,27 @@ const Bookmarks = () => {
 				);
 				return response.data.bookmarkedPosts;
 			} catch (error) {
-				console.error("Error fetching bookmarks:", {
+				// Enhanced error logging
+				const errorDetails = {
 					status: error.response?.status,
 					message: error.message,
 					data: error.response?.data,
 					url: error.config?.url,
-				});
-				throw error;
+					headers: error.config?.headers,
+				};
+				console.error("Error fetching bookmarks:", errorDetails);
+
+				// Throw a more informative error
+				throw new Error(
+					`Failed to fetch bookmarks: ${
+						error.response?.data?.message || error.message
+					}`
+				);
 			}
 		},
 		enabled: !!user,
+		retry: 1, // Add retry logic
+		retryDelay: 1000, // Wait 1 second before retrying
 	});
 
 	// Remove bookmark mutation
