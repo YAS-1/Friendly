@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 /* eslint-disable no-unused-vars */
 import { createContext, useState, useContext, useEffect } from "react";
 import axios from "axios";
@@ -48,7 +49,7 @@ export const AuthProvider = ({ children }) => {
 					setUser(null);
 				} else if (error.response?.status === 404) {
 					console.error(
-						"Server endpoint not found. Please check if the server is running and the API routes are correct."
+						"User not registered. Please register first."
 					);
 					setUser(null);
 				} else {
