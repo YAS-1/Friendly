@@ -82,8 +82,14 @@ const Messages = () => {
 	const { data: followers } = useQuery({
 		queryKey: ["followers", user?._id],
 		queryFn: async () => {
-			const response = await axios.get(`/follow/followers/${user?._id}`);
-			return response.data.data.map((follow) => follow.follower);
+			if (!user?._id) return [];
+			try {
+				const response = await axios.get(`/follow/followers/${user._id}`);
+				return response.data.data.map((follow) => follow.follower);
+			} catch (error) {
+				console.error("Error fetching followers:", error);
+				return [];
+			}
 		},
 		enabled: !!user?._id,
 	});
@@ -92,8 +98,14 @@ const Messages = () => {
 	const { data: following } = useQuery({
 		queryKey: ["following", user?._id],
 		queryFn: async () => {
-			const response = await axios.get(`/follow/following/${user?._id}`);
-			return response.data.data.map((follow) => follow.following);
+			if (!user?._id) return [];
+			try {
+				const response = await axios.get(`/follow/following/${user._id}`);
+				return response.data.data.map((follow) => follow.following);
+			} catch (error) {
+				console.error("Error fetching following:", error);
+				return [];
+			}
 		},
 		enabled: !!user?._id,
 	});
@@ -101,6 +113,9 @@ const Messages = () => {
 	// Send message mutation
 	const sendMessageMutation = useMutation({
 		mutationFn: async (messageData) => {
+			if (!messageData.receiver || !messageData.content) {
+				throw new Error("Missing required message data");
+			}
 			try {
 				return await axios.post("/messages/send", {
 					recipientId: messageData.receiver,
@@ -143,7 +158,7 @@ const Messages = () => {
 	// Handle sending a message
 	const handleSendMessage = (e) => {
 		e.preventDefault();
-		if (!message.trim() || !activeChat) return;
+		if (!message.trim() || !activeChat || !user?._id) return;
 
 		sendMessageMutation.mutate({
 			content: message,
@@ -153,6 +168,7 @@ const Messages = () => {
 
 	// Format date
 	const formatMessageDate = (dateString) => {
+		if (!dateString) return "";
 		const date = new Date(dateString);
 		const now = new Date();
 		const diffInDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
@@ -170,6 +186,18 @@ const Messages = () => {
 			return date.toLocaleDateString([], { month: "short", day: "numeric" });
 		}
 	};
+
+	if (!user) {
+		return (
+			<div className='flex items-center justify-center h-screen'>
+				<div className='text-center'>
+					<p className='text-gray-500 dark:text-gray-400'>
+						Please log in to access messages
+					</p>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className='max-w-4xl mx-auto p-2 sm:p-4'>
@@ -216,7 +244,7 @@ const Messages = () => {
 																	? conversation.user.profilePhoto
 																	: `http://localhost:5500${conversation.user.profilePhoto}`
 															}
-															alt={conversation.user?.username}
+															alt={conversation.user?.username || "User"}
 															className='w-10 h-10 rounded-full object-cover'
 														/>
 													) : (
@@ -236,7 +264,7 @@ const Messages = () => {
 												</div>
 												<div className='flex-1 min-w-0'>
 													<p className='font-medium text-gray-900 dark:text-white truncate'>
-														{conversation.user?.username}
+														{conversation.user?.username || "Unknown User"}
 													</p>
 													<p className='text-sm text-gray-500 dark:text-gray-400 truncate'>
 														{conversation.lastMessage?.content ||
@@ -275,7 +303,7 @@ const Messages = () => {
 															? follower.profilePhoto
 															: `http://localhost:5500${follower.profilePhoto}`
 													}
-													alt={follower?.username}
+													alt={follower?.username || "User"}
 													className='w-10 h-10 rounded-full object-cover'
 												/>
 											) : (
@@ -289,7 +317,7 @@ const Messages = () => {
 										</div>
 										<div className='flex-1 min-w-0'>
 											<p className='font-medium text-gray-900 dark:text-white truncate'>
-												{follower?.username}
+												{follower?.username || "Unknown User"}
 											</p>
 											<p className='text-sm text-gray-500 dark:text-gray-400 truncate'>
 												Follower
@@ -316,7 +344,7 @@ const Messages = () => {
 															? followingUser.profilePhoto
 															: `http://localhost:5500${followingUser.profilePhoto}`
 													}
-													alt={followingUser?.username}
+													alt={followingUser?.username || "User"}
 													className='w-10 h-10 rounded-full object-cover'
 												/>
 											) : (
@@ -330,7 +358,7 @@ const Messages = () => {
 										</div>
 										<div className='flex-1 min-w-0'>
 											<p className='font-medium text-gray-900 dark:text-white truncate'>
-												{followingUser?.username}
+												{followingUser?.username || "Unknown User"}
 											</p>
 											<p className='text-sm text-gray-500 dark:text-gray-400 truncate'>
 												Following
@@ -356,7 +384,7 @@ const Messages = () => {
 														? chatUser.profilePhoto
 														: `http://localhost:5500${chatUser.profilePhoto}`
 												}
-												alt={chatUser?.username}
+												alt={chatUser?.username || "User"}
 												className='w-10 h-10 rounded-full object-cover'
 											/>
 										) : (
@@ -375,7 +403,7 @@ const Messages = () => {
 									</div>
 									<div>
 										<p className='font-medium text-gray-900 dark:text-white'>
-											{chatUser?.username}
+											{chatUser?.username || "Unknown User"}
 										</p>
 									</div>
 								</div>
