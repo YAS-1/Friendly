@@ -73,7 +73,7 @@ export const AuthProvider = ({ children }) => {
 			);
 			const { data } = await axios.post("/auth/login", { email, password });
 			setUser(data.user);
-			toast.success("Login successful!");
+			// toast.success("Login successful!");
 			navigate("/");
 			return true;
 		} catch (error) {
@@ -86,7 +86,7 @@ export const AuthProvider = ({ children }) => {
 
 			if (error.response?.status === 404) {
 				toast.error(
-					"Server endpoint not found. Please check if the server is running."
+					"User not found. Please register first."
 				);
 			} else {
 				toast.error(error.response?.data?.message || "Login failed");
@@ -102,7 +102,7 @@ export const AuthProvider = ({ children }) => {
 		try {
 			setLoading(true);
 			const { data } = await axios.post("/auth/createAccount", userData);
-			toast.success("Registration successful! Please login.");
+			// toast.success("Registration successful! Please login.");
 			navigate("/login");
 			return true;
 		} catch (error) {

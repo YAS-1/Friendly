@@ -31,7 +31,7 @@ const Messages = () => {
 				throw error;
 			}
 		},
-		enabled: !!user,
+		enabled: !!user?._id,
 		refetchInterval: 10000, // Refetch every 10 seconds
 	});
 
@@ -53,7 +53,7 @@ const Messages = () => {
 				throw error;
 			}
 		},
-		enabled: !!activeChat && !!user,
+		enabled: !!activeChat && !!user?._id,
 		refetchInterval: 5000, // Refetch every 5 seconds
 	});
 
@@ -75,7 +75,7 @@ const Messages = () => {
 				throw error;
 			}
 		},
-		enabled: !!activeChat && !!user,
+		enabled: !!activeChat && !!user?._id,
 	});
 
 	// Fetch followers
@@ -85,7 +85,7 @@ const Messages = () => {
 			const response = await axios.get(`/follow/followers/${user?._id}`);
 			return response.data.data.map((follow) => follow.follower);
 		},
-		enabled: !!user,
+		enabled: !!user?._id,
 	});
 
 	// Fetch following
@@ -95,7 +95,7 @@ const Messages = () => {
 			const response = await axios.get(`/follow/following/${user?._id}`);
 			return response.data.data.map((follow) => follow.following);
 		},
-		enabled: !!user,
+		enabled: !!user?._id,
 	});
 
 	// Send message mutation
@@ -200,14 +200,14 @@ const Messages = () => {
 										{conversations?.map((conversation) => (
 											<button
 												key={conversation._id}
-												onClick={() => setActiveChat(conversation.user._id)}
+												onClick={() => setActiveChat(conversation.user?._id)}
 												className={`w-full p-3 sm:p-4 flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-gray-700 ${
-													activeChat === conversation.user._id
+													activeChat === conversation.user?._id
 														? "bg-gray-50 dark:bg-gray-700"
 														: ""
 												}`}>
 												<div className='relative'>
-													{conversation.user.profilePhoto ? (
+													{conversation.user?.profilePhoto ? (
 														<img
 															src={
 																conversation.user.profilePhoto.startsWith(
@@ -216,7 +216,7 @@ const Messages = () => {
 																	? conversation.user.profilePhoto
 																	: `http://localhost:5500${conversation.user.profilePhoto}`
 															}
-															alt={conversation.user.username}
+															alt={conversation.user?.username}
 															className='w-10 h-10 rounded-full object-cover'
 														/>
 													) : (
@@ -236,7 +236,7 @@ const Messages = () => {
 												</div>
 												<div className='flex-1 min-w-0'>
 													<p className='font-medium text-gray-900 dark:text-white truncate'>
-														{conversation.user.username}
+														{conversation.user?.username}
 													</p>
 													<p className='text-sm text-gray-500 dark:text-gray-400 truncate'>
 														{conversation.lastMessage?.content ||
@@ -268,14 +268,14 @@ const Messages = () => {
 												: ""
 										}`}>
 										<div className='relative'>
-											{follower.profilePhoto ? (
+											{follower?.profilePhoto ? (
 												<img
 													src={
 														follower.profilePhoto.startsWith("http")
 															? follower.profilePhoto
 															: `http://localhost:5500${follower.profilePhoto}`
 													}
-													alt={follower.username}
+													alt={follower?.username}
 													className='w-10 h-10 rounded-full object-cover'
 												/>
 											) : (
@@ -289,7 +289,7 @@ const Messages = () => {
 										</div>
 										<div className='flex-1 min-w-0'>
 											<p className='font-medium text-gray-900 dark:text-white truncate'>
-												{follower.username}
+												{follower?.username}
 											</p>
 											<p className='text-sm text-gray-500 dark:text-gray-400 truncate'>
 												Follower
@@ -309,14 +309,14 @@ const Messages = () => {
 												: ""
 										}`}>
 										<div className='relative'>
-											{followingUser.profilePhoto ? (
+											{followingUser?.profilePhoto ? (
 												<img
 													src={
 														followingUser.profilePhoto.startsWith("http")
 															? followingUser.profilePhoto
 															: `http://localhost:5500${followingUser.profilePhoto}`
 													}
-													alt={followingUser.username}
+													alt={followingUser?.username}
 													className='w-10 h-10 rounded-full object-cover'
 												/>
 											) : (
@@ -330,7 +330,7 @@ const Messages = () => {
 										</div>
 										<div className='flex-1 min-w-0'>
 											<p className='font-medium text-gray-900 dark:text-white truncate'>
-												{followingUser.username}
+												{followingUser?.username}
 											</p>
 											<p className='text-sm text-gray-500 dark:text-gray-400 truncate'>
 												Following
@@ -356,7 +356,7 @@ const Messages = () => {
 														? chatUser.profilePhoto
 														: `http://localhost:5500${chatUser.profilePhoto}`
 												}
-												alt={chatUser.username}
+												alt={chatUser?.username}
 												className='w-10 h-10 rounded-full object-cover'
 											/>
 										) : (
@@ -400,7 +400,7 @@ const Messages = () => {
 															messages[index - 1].createdAt
 														).toDateString();
 
-												const isOwnMessage = message.sender._id === user._id;
+												const isOwnMessage = message.sender?._id === user?._id;
 
 												return (
 													<>
