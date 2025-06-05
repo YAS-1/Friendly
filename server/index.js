@@ -12,6 +12,7 @@ import messageRoute from "./routes/message.route.js";
 import searchRoute from "./routes/search.route.js";
 import passwordResetRoute from "./routes/passwordReset.routes.js";
 import setupSocket from "./socket/socket.js";
+import path from "path";
 
 dotenv.config();
 
@@ -45,6 +46,14 @@ app.use('/api/notifications', notificationRoute);
 app.use('/api/messages', messageRoute);
 app.use('/api/search', searchRoute);
 app.use('/api/password-reset', passwordResetRoute);
+
+// Serve static files from the client build directory
+app.use(express.static(path.join(__dirname, "../client/dist")));
+
+// Fallback route for client-side routing
+app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../client/dist", "index.html"));
+});
 
 // Connect to database
 connectDB();
