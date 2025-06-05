@@ -29,6 +29,10 @@ const Notifications = () => {
 			const response = await axios.get("/notifications");
 			return response.data.data;
 		},
+		refetchInterval: 5000, // Refetch every 5 seconds
+		refetchOnWindowFocus: true,
+		refetchOnMount: true,
+		refetchOnReconnect: true,
 	});
 
 	// Mark all as read mutation
@@ -41,6 +45,11 @@ const Notifications = () => {
 			queryClient.invalidateQueries({ queryKey: ["unreadNotifications"] });
 			toast.success("All notifications marked as read");
 		},
+		onError: (error) => {
+			toast.error(
+				error.response?.data?.message || "Failed to mark notifications as read"
+			);
+		},
 	});
 
 	// Mark single notification as read mutation
@@ -51,6 +60,12 @@ const Notifications = () => {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["notifications"] });
 			queryClient.invalidateQueries({ queryKey: ["unreadNotifications"] });
+			toast.success("Notification marked as read");
+		},
+		onError: (error) => {
+			toast.error(
+				error.response?.data?.message || "Failed to mark notification as read"
+			);
 		},
 	});
 
@@ -64,6 +79,11 @@ const Notifications = () => {
 			queryClient.invalidateQueries({ queryKey: ["unreadNotifications"] });
 			toast.success("Notification deleted");
 		},
+		onError: (error) => {
+			toast.error(
+				error.response?.data?.message || "Failed to delete notification"
+			);
+		},
 	});
 
 	// Delete all notifications mutation
@@ -75,6 +95,11 @@ const Notifications = () => {
 			queryClient.invalidateQueries({ queryKey: ["notifications"] });
 			queryClient.invalidateQueries({ queryKey: ["unreadNotifications"] });
 			toast.success("All notifications cleared");
+		},
+		onError: (error) => {
+			toast.error(
+				error.response?.data?.message || "Failed to clear notifications"
+			);
 		},
 	});
 
@@ -149,15 +174,29 @@ const Notifications = () => {
 						<div className='flex items-center space-x-2'>
 							<button
 								onClick={() => markAllAsReadMutation.mutate()}
-								className='px-3 py-1 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors'>
-								<FiCheckCircle className='inline-block mr-1' />
-								Mark all as read
+								disabled={markAllAsReadMutation.isPending}
+								className='px-3 py-1 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed'>
+								{markAllAsReadMutation.isPending ? (
+									<div className='animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-blue-500'></div>
+								) : (
+									<>
+										<FiCheckCircle className='inline-block mr-1' />
+										Mark all as read
+									</>
+								)}
 							</button>
 							<button
 								onClick={() => deleteAllMutation.mutate()}
-								className='px-3 py-1 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors'>
-								<FiTrash2 className='inline-block mr-1' />
-								Clear all
+								disabled={deleteAllMutation.isPending}
+								className='px-3 py-1 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed'>
+								{deleteAllMutation.isPending ? (
+									<div className='animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-red-500'></div>
+								) : (
+									<>
+										<FiTrash2 className='inline-block mr-1' />
+										Clear all
+									</>
+								)}
 							</button>
 						</div>
 					</div>
@@ -276,8 +315,13 @@ const Notifications = () => {
 														onClick={() =>
 															markAsReadMutation.mutate(notification._id)
 														}
-														className='p-1 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors'>
-														<FiCheck size={16} />
+														disabled={markAsReadMutation.isPending}
+														className='p-1 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed'>
+														{markAsReadMutation.isPending ? (
+															<div className='animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-blue-500'></div>
+														) : (
+															<FiCheck size={16} />
+														)}
 													</button>
 												)}
 												<button

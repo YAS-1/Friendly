@@ -14,9 +14,11 @@ const useUnreadCounts = () => {
         return 0;
       }
     },
-    refetchInterval: 30000, // Refetch every 30 seconds
-    refetchOnWindowFocus: true, // Refetch when window regains focus
-    staleTime: 10000, // Consider data stale after 10 seconds
+    refetchInterval: 5000, // Refetch every 5 seconds instead of 30
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
+    staleTime: 0, // Always consider data stale to ensure fresh data
   });
 
   // Fetch unread messages count
@@ -31,9 +33,11 @@ const useUnreadCounts = () => {
         return 0;
       }
     },
-    refetchInterval: 30000, // Refetch every 30 seconds
-    refetchOnWindowFocus: true, // Refetch when window regains focus
-    staleTime: 10000, // Consider data stale after 10 seconds
+    refetchInterval: 5000, // Refetch every 5 seconds instead of 30
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
+    staleTime: 0, // Always consider data stale to ensure fresh data
   });
 
   return {
