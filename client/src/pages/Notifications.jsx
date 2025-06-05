@@ -10,6 +10,7 @@ import {
 	FiMail,
 	FiTrash2,
 	FiCheck,
+	FiCheckCircle,
 } from "react-icons/fi";
 import toast from "react-hot-toast";
 
@@ -28,10 +29,6 @@ const Notifications = () => {
 			const response = await axios.get("/notifications");
 			return response.data.data;
 		},
-		onSuccess: () => {
-			// Mark all notifications as read when the page is viewed
-			markAllAsReadMutation.mutate();
-		},
 	});
 
 	// Mark all as read mutation
@@ -46,6 +43,29 @@ const Notifications = () => {
 		},
 	});
 
+	// Mark single notification as read mutation
+	const markAsReadMutation = useMutation({
+		mutationFn: async (notificationId) => {
+			await axios.patch(`/notifications/read/${notificationId}`);
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["notifications"] });
+			queryClient.invalidateQueries({ queryKey: ["unreadNotifications"] });
+		},
+	});
+
+	// Delete single notification mutation
+	const deleteNotificationMutation = useMutation({
+		mutationFn: async (notificationId) => {
+			await axios.delete(`/notifications/${notificationId}`);
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["notifications"] });
+			queryClient.invalidateQueries({ queryKey: ["unreadNotifications"] });
+			toast.success("Notification deleted");
+		},
+	});
+
 	// Delete all notifications mutation
 	const deleteAllMutation = useMutation({
 		mutationFn: async () => {
@@ -53,6 +73,7 @@ const Notifications = () => {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["notifications"] });
+			queryClient.invalidateQueries({ queryKey: ["unreadNotifications"] });
 			toast.success("All notifications cleared");
 		},
 	});
@@ -60,6 +81,8 @@ const Notifications = () => {
 	// Filter notifications based on active tab
 	const filteredNotifications = notifications?.filter((notification) => {
 		if (activeTab === "all") return true;
+		if (activeTab === "unread") return !notification.read;
+		if (activeTab === "read") return notification.read;
 		return notification.type === activeTab;
 	});
 
@@ -101,7 +124,6 @@ const Notifications = () => {
 		switch (notification.type) {
 			case "like":
 			case "comment":
-				// Only return post link if post exists and has an ID
 				if (notification.post?._id) {
 					return `/post/${notification.post._id}`;
 				}
@@ -120,9 +142,58 @@ const Notifications = () => {
 			<div className='bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden'>
 				{/* Notifications Header */}
 				<div className='p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700'>
-					<h1 className='text-xl font-semibold text-gray-900 dark:text-white'>
-						Notifications
-					</h1>
+					<div className='flex items-center justify-between'>
+						<h1 className='text-xl font-semibold text-gray-900 dark:text-white'>
+							Notifications
+						</h1>
+						<div className='flex items-center space-x-2'>
+							<button
+								onClick={() => markAllAsReadMutation.mutate()}
+								className='px-3 py-1 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors'>
+								<FiCheckCircle className='inline-block mr-1' />
+								Mark all as read
+							</button>
+							<button
+								onClick={() => deleteAllMutation.mutate()}
+								className='px-3 py-1 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors'>
+								<FiTrash2 className='inline-block mr-1' />
+								Clear all
+							</button>
+						</div>
+					</div>
+				</div>
+
+				{/* Tabs */}
+				<div className='border-b border-gray-200 dark:border-gray-700'>
+					<div className='flex space-x-4 px-4'>
+						<button
+							onClick={() => setActiveTab("all")}
+							className={`py-3 px-1 border-b-2 font-medium text-sm ${
+								activeTab === "all"
+									? "border-blue-500 text-blue-600 dark:text-blue-400"
+									: "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+							}`}>
+							All
+						</button>
+						<button
+							onClick={() => setActiveTab("unread")}
+							className={`py-3 px-1 border-b-2 font-medium text-sm ${
+								activeTab === "unread"
+									? "border-blue-500 text-blue-600 dark:text-blue-400"
+									: "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+							}`}>
+							Unread
+						</button>
+						<button
+							onClick={() => setActiveTab("read")}
+							className={`py-3 px-1 border-b-2 font-medium text-sm ${
+								activeTab === "read"
+									? "border-blue-500 text-blue-600 dark:text-blue-400"
+									: "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+							}`}>
+							Read
+						</button>
+					</div>
 				</div>
 
 				{/* Notifications List */}
@@ -135,12 +206,12 @@ const Notifications = () => {
 						<div className='p-4 text-center text-red-500 dark:text-red-400'>
 							Failed to load notifications
 						</div>
-					) : notifications?.length === 0 ? (
+					) : filteredNotifications?.length === 0 ? (
 						<div className='p-8 text-center text-gray-500 dark:text-gray-400'>
-							No notifications yet
+							No notifications {activeTab !== "all" ? `in ${activeTab}` : ""}
 						</div>
 					) : (
-						notifications?.map((notification) => (
+						filteredNotifications?.map((notification) => (
 							<div
 								key={notification._id}
 								className={`p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-gray-700 ${
@@ -194,9 +265,29 @@ const Notifications = () => {
 													)
 												) : null}
 											</div>
-											<span className='text-xs text-gray-500 dark:text-gray-400'>
-												{new Date(notification.createdAt).toLocaleDateString()}
-											</span>
+											<div className='flex items-center space-x-2'>
+												<span className='text-xs text-gray-500 dark:text-gray-400'>
+													{new Date(
+														notification.createdAt
+													).toLocaleDateString()}
+												</span>
+												{!notification.read && (
+													<button
+														onClick={() =>
+															markAsReadMutation.mutate(notification._id)
+														}
+														className='p-1 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors'>
+														<FiCheck size={16} />
+													</button>
+												)}
+												<button
+													onClick={() =>
+														deleteNotificationMutation.mutate(notification._id)
+													}
+													className='p-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors'>
+													<FiTrash2 size={16} />
+												</button>
+											</div>
 										</div>
 										{notification.type === "comment" && notification.post && (
 											<p className='mt-1 text-sm text-gray-600 dark:text-gray-400'>
