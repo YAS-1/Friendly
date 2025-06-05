@@ -28,6 +28,10 @@ const Notifications = () => {
 			const response = await axios.get("/notifications");
 			return response.data.data;
 		},
+		onSuccess: () => {
+			// Mark all notifications as read when the page is viewed
+			markAllAsReadMutation.mutate();
+		},
 	});
 
 	// Mark all as read mutation
