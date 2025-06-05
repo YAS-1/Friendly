@@ -1,4 +1,4 @@
- import Message from '../models/message.model.js';
+import Message from '../models/message.model.js';
 import User from '../models/user.model.js';
 import Notification from '../models/notification.model.js';
 

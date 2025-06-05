@@ -9,9 +9,11 @@ import {
 	FiSearch,
 	FiLogOut,
 } from "react-icons/fi";
+import useUnreadCounts from "../hooks/useUnreadCounts";
 
 const MobileNav = () => {
 	const { user, logout } = useAuth();
+	const { unreadMessages, unreadNotifications } = useUnreadCounts();
 
 	const navItems = [
 		{ path: "/", icon: <FiHome size={20} />, label: "Home" },
@@ -24,11 +26,13 @@ const MobileNav = () => {
 			path: "/messages",
 			icon: <FiMessageSquare size={20} />,
 			label: "Messages",
+			badge: unreadMessages,
 		},
 		{
 			path: "/notifications",
 			icon: <FiBell size={20} />,
 			label: "Notifications",
+			badge: unreadNotifications,
 		},
 		{ path: "/bookmarks", icon: <FiBookmark size={20} />, label: "Bookmarks" },
 		{ path: "/search", icon: <FiSearch size={20} />, label: "Search" },
@@ -64,7 +68,14 @@ const MobileNav = () => {
 										: "text-gray-600 dark:text-gray-400"
 								}`
 							}>
-							{item.icon}
+							<div className='relative'>
+								{item.icon}
+								{item.badge > 0 && (
+									<span className='absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center'>
+										{item.badge}
+									</span>
+								)}
+							</div>
 							<span className='text-[10px] mt-0.5'>{item.label}</span>
 						</NavLink>
 					)
