@@ -86,10 +86,10 @@ export const AuthProvider = ({ children }) => {
 
 			if (error.response?.status === 404) {
 				toast.error(
-					"User not found. Please register first."
+					"User not registered. Please register first."
 				);
 			} else {
-				toast.error(error.response?.data?.message || "Login failed");
+				toast.error(error.response?.data?.message || "Login failed. Please check your email and password.");
 			}
 			return false;
 		} finally {
