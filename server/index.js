@@ -13,11 +13,17 @@ import searchRoute from "./routes/search.route.js";
 import passwordResetRoute from "./routes/passwordReset.routes.js";
 import setupSocket from "./socket/socket.js";
 import path from "path";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
 dotenv.config();
 
 const app = express();
 const server = createServer(app);
+
+// Define __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Initialize socket.io
 const io = setupSocket(server);
