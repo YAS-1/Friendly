@@ -167,7 +167,24 @@ const Messages = () => {
 		}
 	};
 
-	if (!user) {
+	// Filter out users that are already in conversations
+	const existingChatUsers = new Set(
+		conversations
+			?.filter((conv) => conv?.user?._id)
+			.map((conv) => conv.user._id) || []
+	);
+	const newFollowers =
+		followers?.filter(
+			(follower) => follower?._id && !existingChatUsers.has(follower._id)
+		) || [];
+	const newFollowing =
+		following?.filter(
+			(followingUser) =>
+				followingUser?._id && !existingChatUsers.has(followingUser._id)
+		) || [];
+
+	// Add error boundary
+	if (!user?._id) {
 		return (
 			<div className='flex items-center justify-center h-screen'>
 				<div className='text-center'>
@@ -178,17 +195,6 @@ const Messages = () => {
 			</div>
 		);
 	}
-
-	// Filter out users that are already in conversations
-	const existingChatUsers = new Set(
-		conversations?.map((conv) => conv.user?._id) || []
-	);
-	const newFollowers =
-		followers?.filter((follower) => !existingChatUsers.has(follower._id)) || [];
-	const newFollowing =
-		following?.filter(
-			(followingUser) => !existingChatUsers.has(followingUser._id)
-		) || [];
 
 	return (
 		<div className='max-w-4xl mx-auto p-2 sm:p-4'>
