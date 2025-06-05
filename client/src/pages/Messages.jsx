@@ -20,15 +20,10 @@ const Messages = () => {
 		queryFn: async () => {
 			try {
 				const response = await axios.get("/messages/chats/recent");
-				return response.data.data;
+				return response.data.data || [];
 			} catch (error) {
-				console.error("Error fetching conversations:", {
-					status: error.response?.status,
-					message: error.message,
-					data: error.response?.data,
-					url: error.config?.url,
-				});
-				throw error;
+				console.error("Error fetching conversations:", error);
+				return [];
 			}
 		},
 		enabled: !!user?._id,
@@ -42,15 +37,10 @@ const Messages = () => {
 			if (!activeChat) return [];
 			try {
 				const response = await axios.get(`/messages/${activeChat}`);
-				return response.data.data;
+				return response.data.data || [];
 			} catch (error) {
-				console.error("Error fetching messages:", {
-					status: error.response?.status,
-					message: error.message,
-					data: error.response?.data,
-					url: error.config?.url,
-				});
-				throw error;
+				console.error("Error fetching messages:", error);
+				return [];
 			}
 		},
 		enabled: !!activeChat && !!user?._id,
@@ -66,26 +56,21 @@ const Messages = () => {
 				const response = await axios.get(`/auth/profile/${activeChat}`);
 				return response.data.user;
 			} catch (error) {
-				console.error("Error fetching chat user:", {
-					status: error.response?.status,
-					message: error.message,
-					data: error.response?.data,
-					url: error.config?.url,
-				});
-				throw error;
+				console.error("Error fetching chat user:", error);
+				return null;
 			}
 		},
 		enabled: !!activeChat && !!user?._id,
 	});
 
 	// Fetch followers
-	const { data: followers } = useQuery({
+	const { data: followers = [] } = useQuery({
 		queryKey: ["followers", user?._id],
 		queryFn: async () => {
 			if (!user?._id) return [];
 			try {
 				const response = await axios.get(`/follow/followers/${user._id}`);
-				return response.data.data.map((follow) => follow.follower);
+				return response.data.data.map((follow) => follow.follower) || [];
 			} catch (error) {
 				console.error("Error fetching followers:", error);
 				return [];
@@ -95,13 +80,13 @@ const Messages = () => {
 	});
 
 	// Fetch following
-	const { data: following } = useQuery({
+	const { data: following = [] } = useQuery({
 		queryKey: ["following", user?._id],
 		queryFn: async () => {
 			if (!user?._id) return [];
 			try {
 				const response = await axios.get(`/follow/following/${user._id}`);
-				return response.data.data.map((follow) => follow.following);
+				return response.data.data.map((follow) => follow.following) || [];
 			} catch (error) {
 				console.error("Error fetching following:", error);
 				return [];
@@ -122,12 +107,7 @@ const Messages = () => {
 					content: messageData.content,
 				});
 			} catch (error) {
-				console.error("Error sending message:", {
-					status: error.response?.status,
-					message: error.message,
-					data: error.response?.data,
-					url: error.config?.url,
-				});
+				console.error("Error sending message:", error);
 				throw error;
 			}
 		},
@@ -198,6 +178,17 @@ const Messages = () => {
 			</div>
 		);
 	}
+
+	// Filter out users that are already in conversations
+	const existingChatUsers = new Set(
+		conversations?.map((conv) => conv.user?._id) || []
+	);
+	const newFollowers =
+		followers?.filter((follower) => !existingChatUsers.has(follower._id)) || [];
+	const newFollowing =
+		following?.filter(
+			(followingUser) => !existingChatUsers.has(followingUser._id)
+		) || [];
 
 	return (
 		<div className='max-w-4xl mx-auto p-2 sm:p-4'>
@@ -281,91 +272,95 @@ const Messages = () => {
 									</>
 								)}
 
-								{/* Followers and Following */}
-								<div className='p-3 text-sm font-medium text-gray-500 dark:text-gray-400'>
-									Start New Chat
-								</div>
-								{/* Followers */}
-								{followers?.map((follower) => (
-									<button
-										key={follower._id}
-										onClick={() => setActiveChat(follower._id)}
-										className={`w-full p-3 sm:p-4 flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-gray-700 ${
-											activeChat === follower._id
-												? "bg-gray-50 dark:bg-gray-700"
-												: ""
-										}`}>
-										<div className='relative'>
-											{follower?.profilePhoto ? (
-												<img
-													src={
-														follower.profilePhoto.startsWith("http")
-															? follower.profilePhoto
-															: `http://localhost:5500${follower.profilePhoto}`
-													}
-													alt={follower?.username || "User"}
-													className='w-10 h-10 rounded-full object-cover'
-												/>
-											) : (
-												<div className='w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center'>
-													<FiUser
-														size={24}
-														className='text-gray-500 dark:text-gray-400'
-													/>
+								{/* Start New Chat Section */}
+								{(newFollowers.length > 0 || newFollowing.length > 0) && (
+									<>
+										<div className='p-3 text-sm font-medium text-gray-500 dark:text-gray-400'>
+											Start New Chat
+										</div>
+										{/* Followers */}
+										{newFollowers.map((follower) => (
+											<button
+												key={follower._id}
+												onClick={() => setActiveChat(follower._id)}
+												className={`w-full p-3 sm:p-4 flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-gray-700 ${
+													activeChat === follower._id
+														? "bg-gray-50 dark:bg-gray-700"
+														: ""
+												}`}>
+												<div className='relative'>
+													{follower?.profilePhoto ? (
+														<img
+															src={
+																follower.profilePhoto.startsWith("http")
+																	? follower.profilePhoto
+																	: `http://localhost:5500${follower.profilePhoto}`
+															}
+															alt={follower?.username || "User"}
+															className='w-10 h-10 rounded-full object-cover'
+														/>
+													) : (
+														<div className='w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center'>
+															<FiUser
+																size={24}
+																className='text-gray-500 dark:text-gray-400'
+															/>
+														</div>
+													)}
 												</div>
-											)}
-										</div>
-										<div className='flex-1 min-w-0'>
-											<p className='font-medium text-gray-900 dark:text-white truncate'>
-												{follower?.username || "Unknown User"}
-											</p>
-											<p className='text-sm text-gray-500 dark:text-gray-400 truncate'>
-												Follower
-											</p>
-										</div>
-									</button>
-								))}
+												<div className='flex-1 min-w-0'>
+													<p className='font-medium text-gray-900 dark:text-white truncate'>
+														{follower?.username || "Unknown User"}
+													</p>
+													<p className='text-sm text-gray-500 dark:text-gray-400 truncate'>
+														Follower
+													</p>
+												</div>
+											</button>
+										))}
 
-								{/* Following */}
-								{following?.map((followingUser) => (
-									<button
-										key={followingUser._id}
-										onClick={() => setActiveChat(followingUser._id)}
-										className={`w-full p-3 sm:p-4 flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-gray-700 ${
-											activeChat === followingUser._id
-												? "bg-gray-50 dark:bg-gray-700"
-												: ""
-										}`}>
-										<div className='relative'>
-											{followingUser?.profilePhoto ? (
-												<img
-													src={
-														followingUser.profilePhoto.startsWith("http")
-															? followingUser.profilePhoto
-															: `http://localhost:5500${followingUser.profilePhoto}`
-													}
-													alt={followingUser?.username || "User"}
-													className='w-10 h-10 rounded-full object-cover'
-												/>
-											) : (
-												<div className='w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center'>
-													<FiUser
-														size={24}
-														className='text-gray-500 dark:text-gray-400'
-													/>
+										{/* Following */}
+										{newFollowing.map((followingUser) => (
+											<button
+												key={followingUser._id}
+												onClick={() => setActiveChat(followingUser._id)}
+												className={`w-full p-3 sm:p-4 flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-gray-700 ${
+													activeChat === followingUser._id
+														? "bg-gray-50 dark:bg-gray-700"
+														: ""
+												}`}>
+												<div className='relative'>
+													{followingUser?.profilePhoto ? (
+														<img
+															src={
+																followingUser.profilePhoto.startsWith("http")
+																	? followingUser.profilePhoto
+																	: `http://localhost:5500${followingUser.profilePhoto}`
+															}
+															alt={followingUser?.username || "User"}
+															className='w-10 h-10 rounded-full object-cover'
+														/>
+													) : (
+														<div className='w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center'>
+															<FiUser
+																size={24}
+																className='text-gray-500 dark:text-gray-400'
+															/>
+														</div>
+													)}
 												</div>
-											)}
-										</div>
-										<div className='flex-1 min-w-0'>
-											<p className='font-medium text-gray-900 dark:text-white truncate'>
-												{followingUser?.username || "Unknown User"}
-											</p>
-											<p className='text-sm text-gray-500 dark:text-gray-400 truncate'>
-												Following
-											</p>
-										</div>
-									</button>
-								))}
+												<div className='flex-1 min-w-0'>
+													<p className='font-medium text-gray-900 dark:text-white truncate'>
+														{followingUser?.username || "Unknown User"}
+													</p>
+													<p className='text-sm text-gray-500 dark:text-gray-400 truncate'>
+														Following
+													</p>
+												</div>
+											</button>
+										))}
+									</>
+								)}
 							</div>
 						)}
 					</div>
