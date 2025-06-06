@@ -38,7 +38,7 @@ const Login = () => {
 		if (validateForm()) {
 			try {
 				await login(email, password);
-				// toast.success("Login successful");
+				toast.success("Login successful");
 			} catch (error) {
 				const errorMessage =
 					error.response?.data?.message || "Login failed. Please try again.";
