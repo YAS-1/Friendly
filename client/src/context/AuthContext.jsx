@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }) => {
 					setUser(null);
 				} else if (error.response?.status === 404) {
 					console.error(
-						"User not registered. Please register first."
+						"User email not registered. Please register first."
 					);
 					setUser(null);
 				} else {
@@ -75,7 +75,7 @@ export const AuthProvider = ({ children }) => {
 			);
 			const { data } = await axios.post("/auth/login", { email, password });
 			setUser(data.user);
-			// toast.success("Login successful!");
+		    	// toast.success("Login successful!");
 			navigate("/");
 			return true;
 		} catch (error) {
