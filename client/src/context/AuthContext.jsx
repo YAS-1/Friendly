@@ -73,7 +73,7 @@ export const AuthProvider = ({ children }) => {
 			);
 			const { data } = await axios.post("/auth/login", { email, password });
 			setUser(data.user);
-			// toast.success("Login successful!");
+			toast.success("Login successful!");
 			navigate("/");
 			return true;
 		} catch (error) {
@@ -102,7 +102,7 @@ export const AuthProvider = ({ children }) => {
 		try {
 			setLoading(true);
 			const { data } = await axios.post("/auth/createAccount", userData);
-			// toast.success("Registration successful! Please login.");
+			toast.success("Registration successful! Please login.");
 			navigate("/login");
 			return true;
 		} catch (error) {
