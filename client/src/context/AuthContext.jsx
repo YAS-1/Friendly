@@ -45,7 +45,9 @@ export const AuthProvider = ({ children }) => {
 				});
 
 				if (error.response?.status === 401) {
-					// Not authenticated, expected on public pages
+					console.log(
+						"Invalid credentials"
+					);
 					setUser(null);
 				} else if (error.response?.status === 404) {
 					console.error(
@@ -73,7 +75,7 @@ export const AuthProvider = ({ children }) => {
 			);
 			const { data } = await axios.post("/auth/login", { email, password });
 			setUser(data.user);
-			// toast.success("Login successful!");
+			toast.success("Login successful!");
 			navigate("/");
 			return true;
 		} catch (error) {
